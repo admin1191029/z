@@ -812,9 +812,7 @@ body.dark .honor-card, body.theme-neu .honor-card{background:rgba(8,12,30,0.75);
 
 @media print {
   body * { visibility: hidden !important; }
-  #certPrintFrame, #certPrintFrame * { visibility: visible !important; }
-  #certPrintFrame { position: fixed !important; inset: 0 !important; z-index: 99999 !important; background: white !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-  .cert-primary, .cert-middle, .cert-secondary { box-shadow: none !important; }
+  /* الطباعة تتم في نافذة منفصلة — لا نحتاج override هنا */
 }
 @media(max-width:768px){:root{--sidebar-w:0px}.sidebar{display:none}.main{padding:16px}.layout{grid-template-columns:1fr}}
 
@@ -1859,95 +1857,189 @@ body.dark .topbar {
 
 
 /* ══ GRADES REPORT — MODE TABS ══ */
+/* ══════════════════════════════════════════════════
+   🏆 GRADES REPORT — PROFESSIONAL REDESIGN v3
+   ══════════════════════════════════════════════════ */
 .gr-mode-tab {
-  display: inline-flex; align-items: center;
-  padding: 10px 14px; font-size: .78rem; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; font-size: .78rem; font-weight: 700;
   color: #64748b; background: transparent; border: none;
-  border-bottom: 2.5px solid transparent; cursor: pointer;
-  white-space: nowrap; transition: color .15s, border-color .15s;
-  font-family: inherit; margin-bottom: -1.5px;
+  border-radius: 10px 10px 0 0;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer; white-space: nowrap;
+  transition: all .18s; font-family: inherit;
+  margin-bottom: -1px;
 }
-.gr-mode-tab:hover { color: #1565c0; }
-.gr-mode-active { color: #1565c0 !important; border-bottom-color: #1565c0 !important; font-weight: 800 !important; }
-
-/* ══ GRADES TABLE — SHARED ══ */
-.gr-table-wrap { overflow-x: auto; }
-.gr-table {
-  width: 100%; border-collapse: collapse; font-size: .78rem;
+.gr-mode-tab svg { flex-shrink: 0; transition: transform .18s; }
+.gr-mode-tab:hover { color: #1565c0; background: rgba(21,101,192,.07); }
+.gr-mode-tab:hover svg { transform: scale(1.15); }
+.gr-mode-active {
+  color: #1565c0 !important; background: white !important;
+  border-bottom-color: #1565c0 !important; font-weight: 800 !important;
+  box-shadow: 0 -2px 8px rgba(21,101,192,.10);
 }
-.gr-table thead th {
-  position: sticky; top: 0; z-index: 2;
-  background: #1565c0; color: white;
-  padding: 10px 12px; font-weight: 800; font-size: .76rem;
-  border: 1px solid #0d47a1; white-space: nowrap;
+.gr-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 12px; margin-bottom: 22px;
 }
-.gr-table thead th.gr-th-dark { background: #0d47a1; }
-.gr-table thead th.gr-th-light { background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0; }
-.gr-table tbody tr:hover td { background: #eff6ff !important; }
-.gr-table td {
-  border: 1px solid #e9eef5; padding: 8px 10px;
-  vertical-align: middle; transition: background .1s;
+.gr-kpi {
+  background: white; border: 1.5px solid #e8edf5;
+  border-radius: 16px; padding: 16px 12px 12px; text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  transition: transform .18s, box-shadow .18s;
+  cursor: default; position: relative; overflow: hidden;
 }
-.gr-row-odd  td { background: #fff; }
-.gr-row-even td { background: #f7f9fd; }
-.gr-td-num   { text-align: center; color: #94a3b8; font-size: .70rem; font-weight: 700; width: 36px; }
-.gr-td-name  { font-weight: 800; color: #0d1b2a; min-width: 130px; }
-.gr-td-score { text-align: center; min-width: 78px; }
-.gr-td-pct   { text-align: center; font-weight: 900; min-width: 62px; }
-.gr-td-grade { text-align: center; min-width: 80px; }
-.gr-td-empty { text-align: center; color: #cbd5e1; }
-.gr-avg-row td {
-  background: #eff6ff !important; border-top: 2px solid #93c5fd;
-  font-weight: 800;
+.gr-kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
+  background: var(--gr-kpi-color, #1565c0);
 }
-.gr-grade-pill {
-  display: inline-block; padding: 2px 10px; border-radius: 99px;
-  font-size: .66rem; font-weight: 800;
+.gr-kpi:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+.gr-kpi-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 8px;
 }
-.gr-progress {
-  background: #f1f5f9; border-radius: 99px; height: 7px; min-width: 60px;
-}
-.gr-progress-bar { height: 100%; border-radius: 99px; }
-
-/* ══ SECTION HEADERS ══ */
+.gr-kpi-val { font-size: 1.5rem; font-weight: 900; line-height: 1; color: var(--gr-kpi-color, #1565c0); }
+.gr-kpi-lbl { font-size: .65rem; color: #94a3b8; font-weight: 700; margin-top: 4px; }
 .gr-section-header {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; flex-wrap: wrap;
-  background: linear-gradient(135deg,#1565c0,#7c3aed);
+  background: linear-gradient(135deg, #1565c0, #7c3aed);
   color: white; padding: 16px 22px;
 }
-.gr-section-header.gr-colored { }
 .gr-card {
-  background: white; border: 1.5px solid #e2e8f0;
-  border-radius: 16px; overflow: hidden;
-  margin-bottom: 18px;
-  box-shadow: 0 2px 12px rgba(21,101,192,.06);
+  background: white; border: 1.5px solid #e8edf5;
+  border-radius: 18px; overflow: hidden; margin-bottom: 18px;
+  box-shadow: 0 2px 14px rgba(21,101,192,.06);
+  transition: box-shadow .2s;
 }
-
-/* ══ KPI STRIP ══ */
-.gr-kpi-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(130px,1fr));
-  gap: 12px; margin-bottom: 20px;
+.gr-card:hover { box-shadow: 0 6px 28px rgba(21,101,192,.10); }
+.gr-table-wrap { overflow-x: auto; }
+.gr-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.gr-table thead { display: table-header-group; }
+.gr-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: #1565c0; color: white;
+  padding: 10px 12px; font-weight: 800; font-size: .75rem;
+  border: 1px solid rgba(255,255,255,.15); white-space: nowrap;
 }
-.gr-kpi {
-  background: white; border: 1.5px solid #e2e8f0;
-  border-radius: 14px; padding: 14px 12px; text-align: center;
-  box-shadow: 0 1px 6px rgba(0,0,0,.04);
-  transition: transform .12s, box-shadow .12s;
+.gr-table thead th.gr-th-dark { background: #0d47a1; }
+.gr-table thead th.gr-th-light { background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0; border: 1px solid #e2e8f0; }
+.gr-table tbody tr { transition: background .08s; }
+.gr-table tbody tr:hover td { background: #eff6ff !important; }
+.gr-table td { border: 1px solid #eef1f6; padding: 8px 10px; vertical-align: middle; }
+.gr-row-odd  td { background: #ffffff; }
+.gr-row-even td { background: #f8fafd; }
+.gr-td-num   { text-align: center; color: #94a3b8; font-size: .70rem; font-weight: 700; width: 36px; }
+.gr-td-name  { font-weight: 800; color: #0d1b2a; min-width: 130px; }
+.gr-td-score { text-align: center; min-width: 80px; }
+.gr-td-pct   { text-align: center; font-weight: 900; min-width: 62px; font-size: .84rem; }
+.gr-td-grade { text-align: center; min-width: 82px; }
+.gr-td-empty { text-align: center; color: #cbd5e1; }
+.gr-avg-row td {
+  background: linear-gradient(90deg,#eff6ff,#f0f4ff) !important;
+  border-top: 2.5px solid #93c5fd !important; font-weight: 800;
 }
-.gr-kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
-.gr-kpi-icon { font-size: 1.35rem; margin-bottom: 4px; }
-.gr-kpi-val  { font-size: 1.55rem; font-weight: 900; line-height: 1; }
-.gr-kpi-lbl  { font-size: .66rem; color: #64748b; font-weight: 700; margin-top: 4px; }
-
-/* ══ DIST BAR ══ */
+.gr-grade-pill {
+  display: inline-block; padding: 3px 10px; border-radius: 99px;
+  font-size: .65rem; font-weight: 800;
+}
+.gr-progress { background: #f1f5f9; border-radius: 99px; height: 8px; min-width: 64px; overflow: hidden; }
+.gr-progress-bar { height: 100%; border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); }
 .gr-dist-wrap { padding: 14px 20px; border-top: 1px solid #f1f5f9; }
-.gr-dist-bar  { display: flex; gap: 3px; height: 24px; border-radius: 8px; overflow: hidden; }
-.gr-dist-seg  { display: flex; align-items: center; justify-content: center; transition: flex .3s; min-width: 0; }
+.gr-dist-bar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; gap: 2px; }
+.gr-dist-seg { display: flex; align-items: center; justify-content: center; transition: flex .4s; min-width: 0; }
 .gr-dist-seg span { font-size: .60rem; color: white; font-weight: 800; }
 .gr-dist-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.gr-dist-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; display:inline-block; }
+.gr-dist-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
+/* ── animations ── */
+@keyframes gr-fade-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.gr-animate { animation: gr-fade-up .28s ease both; }
+.gr-animate:nth-child(1){animation-delay:.03s}
+.gr-animate:nth-child(2){animation-delay:.07s}
+.gr-animate:nth-child(3){animation-delay:.11s}
+.gr-animate:nth-child(4){animation-delay:.15s}
+.gr-animate:nth-child(5){animation-delay:.19s}
+/* ── filter panel ── */
+.gr-filter-wrap {
+  background: white; border: 1.5px solid rgba(66,105,220,.12);
+  border-radius: 18px; margin-bottom: 20px; overflow: hidden;
+  box-shadow: 0 3px 16px rgba(21,101,192,.07);
+}
+.gr-filter-tabs {
+  display: flex; background: #f5f7ff;
+  border-bottom: 1.5px solid rgba(66,105,220,.10);
+  padding: 0 14px; overflow-x: auto;
+}
+.gr-filter-body {
+  padding: 16px 20px;
+  display: grid; grid-template-columns: repeat(auto-fill,minmax(155px,1fr));
+  gap: 12px; align-items: flex-end;
+}
+.gr-fg label { display: block; font-size: .72rem; font-weight: 800; color: #64748b; margin-bottom: 5px; }
+.gr-fg select {
+  width: 100%; padding: 9px 12px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-family: 'Tajawal',sans-serif; font-size: .84rem;
+  color: #0d1b2a; background: #f8fafc; outline: none; transition: all .18s;
+}
+.gr-fg select:focus { border-color: #1565c0; background: white; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+.gr-btn-render {
+  width: 100%; padding: 10px; border-radius: 10px;
+  background: linear-gradient(135deg,#1565c0,#1976d2);
+  color: white; font-family: 'Tajawal',sans-serif; font-size: .84rem;
+  font-weight: 800; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 3px 12px rgba(21,101,192,.28); transition: all .18s;
+}
+.gr-btn-render:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(21,101,192,.40); }
+/* ── search ── */
+.gr-search-row { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px; align-items: center; }
+.gr-search-wrap { position: relative; flex: 1; }
+.gr-search-wrap svg { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.gr-search { width: 100%; padding: 8px 36px 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-family: 'Tajawal',sans-serif; font-size: .83rem; color: #0d1b2a; background: #f8fafc; outline: none; transition: all .18s; }
+.gr-search:focus { border-color: #1565c0; background: white; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+/* ── header bar ── */
+.gr-header-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.gr-page-icon { width: 44px; height: 44px; flex-shrink: 0; background: linear-gradient(135deg,#1565c0,#7c3aed); border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(21,101,192,.28); }
+.gr-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-size: .80rem; font-weight: 700; font-family: 'Tajawal',sans-serif; cursor: pointer; border: none; transition: all .18s; white-space: nowrap; }
+.gr-btn-print { background: #1565c0; color: white; box-shadow: 0 3px 10px rgba(21,101,192,.30); }
+.gr-btn-print:hover { background: #0d47a1; transform: translateY(-1px); }
+.gr-btn-excel { background: rgba(5,150,105,.10); color: #059669; border: 1.5px solid rgba(5,150,105,.28); }
+.gr-btn-excel:hover { background: rgba(5,150,105,.18); }
+
+#grOutput { transition: opacity .28s ease; }
+body.dark .gr-card { background: rgba(15,25,50,.80); border-color: rgba(0,212,255,.14); }
+body.dark .gr-table thead th { background: #0a1628; border-color: rgba(0,212,255,.20); }
+body.dark .gr-table thead th.gr-th-dark { background: #050e1e; }
+body.dark .gr-table thead th.gr-th-light { background: #0d1b2a; color: #94a3b8; border-color: rgba(255,255,255,.08); }
+body.dark .gr-table td { border-color: rgba(255,255,255,.06); }
+body.dark .gr-row-odd td  { background: #0d1b2a; }
+body.dark .gr-row-even td { background: #091320; }
+body.dark .gr-table tbody tr:hover td { background: rgba(0,212,255,.06) !important; }
+body.dark .gr-avg-row td { background: rgba(0,212,255,.07) !important; border-top-color: rgba(0,212,255,.30) !important; }
+body.dark .gr-td-name { color: #e2e8f0; }
+body.dark .gr-kpi { background: rgba(15,25,50,.85); border-color: rgba(255,255,255,.08); }
+body.dark .gr-section-header { background: linear-gradient(135deg,#0d47a1,#4c1d95); }
+body.dark .gr-filter-wrap { background: rgba(10,20,45,.90); border-color: rgba(0,212,255,.14); }
+body.dark .gr-filter-tabs { background: rgba(5,12,30,.80); }
+body.dark .gr-fg select { background: rgba(10,20,45,.90); border-color: rgba(255,255,255,.12); color: #e2e8f0; }
+body.dark .gr-search { background: rgba(10,20,45,.90); border-color: rgba(255,255,255,.12); color: #e2e8f0; }
+body.dark .gr-mode-tab { color: #64748b; }
+body.dark .gr-mode-active { background: rgba(0,20,50,.90) !important; }
+body.dark .gr-dist-wrap { border-top-color: rgba(255,255,255,.06); }
+body.dark .gr-progress { background: rgba(255,255,255,.08); }
+
+/* ── Template Thumbnails ── */
+.tpl-thumb {
+  cursor: pointer; border-radius: 10px; overflow: hidden;
+  transition: transform .18s, box-shadow .18s, outline .12s;
+  padding-bottom: 4px;
+}
+.tpl-thumb:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.tpl-thumb.active { outline: 3px solid #1565c0; outline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -4244,104 +4336,110 @@ async function doLogin(){
     <div class="page-view" id="view-gradesreport">
 
       <!-- ══ HEADER BAR ══ -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:1.35rem;font-weight:900;color:var(--ink2);display:flex;align-items:center;gap:10px;">
-            <span style="width:40px;height:40px;background:linear-gradient(135deg,#1565c0,#7c3aed);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📈</span>
-            كشوف الدرجات والتحليل
+      <div class="gr-header-bar">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="gr-page-icon">📈</div>
+          <div>
+            <div style="font-size:1.3rem;font-weight:900;color:var(--ink2);line-height:1.2;">كشوف الدرجات والتحليل</div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:3px;">عرض وتحليل وطباعة درجات الطلاب بشكل احترافي</div>
           </div>
-          <div style="font-size:.78rem;color:var(--muted);margin-top:5px;margin-right:50px;">عرض وتحليل وطباعة درجات الطلاب — اختر الفلاتر ثم اضغط عرض</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <button class="btn btn-ghost btn-sm" onclick="grPrint()" style="gap:6px;display:inline-flex;align-items:center;">
+          <button class="gr-btn gr-btn-print" onclick="grPrint()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             طباعة PDF
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="grExportExcel()" style="color:#059669;border-color:rgba(5,150,105,.28);gap:6px;display:inline-flex;align-items:center;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <button class="gr-btn gr-btn-excel" onclick="grExportExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             تصدير Excel
           </button>
         </div>
       </div>
 
       <!-- ══ FILTER PANEL ══ -->
-      <div style="background:white;border:1.5px solid rgba(66,105,220,.13);border-radius:18px;margin-bottom:20px;overflow:hidden;box-shadow:0 2px 12px rgba(66,105,220,.07);">
-        <!-- تبويب أنواع الكشف -->
-        <div style="display:flex;border-bottom:1.5px solid rgba(66,105,220,.10);padding:0 20px;gap:4px;background:#fafbff;overflow-x:auto;">
+      <div class="gr-filter-wrap">
+
+        <!-- تبويبات نوع الكشف -->
+        <div class="gr-filter-tabs">
           <button id="grTab_students" onclick="grSetMode('students')" class="gr-mode-tab gr-mode-active">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:5px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             كشف الطلاب
           </button>
           <button id="grTab_subject" onclick="grSetMode('subject')" class="gr-mode-tab">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:5px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             تفصيل مادة
           </button>
           <button id="grTab_compare" onclick="grSetMode('compare')" class="gr-mode-tab">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:5px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             مقارنة الفصول
           </button>
           <button id="grTab_summary" onclick="grSetMode('summary')" class="gr-mode-tab">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:5px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             ملخص إحصائي
           </button>
+          <div style="flex:1;"></div>
+          <div style="display:flex;align-items:center;padding:0 4px;gap:8px;">
+            <div style="position:relative;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="grSearchInput" type="text" class="gr-search" placeholder="ابحث عن طالب..." oninput="grRender()" style="padding:7px 32px 7px 10px;width:170px;font-size:.78rem;border-radius:99px;"/>
+            </div>
+          </div>
         </div>
+
         <!-- الفلاتر -->
-        <div style="padding:16px 20px;">
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;align-items:flex-end;">
-            <div class="fg">
-              <label>المرحلة</label>
-              <select id="grFilterLevel" onchange="grRender()">
-                <option value="">الكل</option>
-                <option value="ابتدائي">ابتدائي</option>
-                <option value="متوسط">متوسط</option>
-                <option value="ثانوي">ثانوي</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label>الفصل / الصف</label>
-              <select id="grFilterClass" onchange="grRender()">
-                <option value="">كل الفصول</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label>المادة</label>
-              <select id="grFilterSubject" onchange="grRender()">
-                <option value="">كل المواد</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label>الفصل الدراسي</label>
-              <select id="grFilterSemester" onchange="grRender()">
-                <option value="">الكل</option>
-                <option value="الفصل الأول">الفصل الأول</option>
-                <option value="الفصل الثاني">الفصل الثاني</option>
-                <option value="الفصل الثالث">الفصل الثالث</option>
-              </select>
-            </div>
-            <div class="fg" style="display:none;"><input type="hidden" id="grViewMode" value="students"></div>
-            <div class="fg">
-              <label>&nbsp;</label>
-              <button class="btn btn-primary btn-sm" onclick="grRender()" style="width:100%;gap:6px;display:inline-flex;align-items:center;justify-content:center;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-4.96"/></svg>
-                عرض الكشف
-              </button>
-            </div>
+        <div class="gr-filter-body">
+          <div class="gr-fg">
+            <label>المرحلة</label>
+            <select id="grFilterLevel" onchange="grRender()">
+              <option value="">الكل</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
+            </select>
+          </div>
+          <div class="gr-fg">
+            <label>الفصل / الصف</label>
+            <select id="grFilterClass" onchange="grRender()">
+              <option value="">كل الفصول</option>
+            </select>
+          </div>
+          <div class="gr-fg">
+            <label>المادة</label>
+            <select id="grFilterSubject" onchange="grRender()">
+              <option value="">كل المواد</option>
+            </select>
+          </div>
+          <div class="gr-fg">
+            <label>الفصل الدراسي</label>
+            <select id="grFilterSemester" onchange="grRender()">
+              <option value="">الكل</option>
+              <option value="الفصل الأول">الفصل الأول</option>
+              <option value="الفصل الثاني">الفصل الثاني</option>
+              <option value="الفصل الثالث">الفصل الثالث</option>
+            </select>
+          </div>
+          <div class="gr-fg" style="display:none;"><input type="hidden" id="grViewMode" value="students"></div>
+          <div class="gr-fg">
+            <label>&nbsp;</label>
+            <button class="gr-btn-render" onclick="grRender()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-4.96"/></svg>
+              عرض الكشف
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- ══ OUTPUT AREA ══ -->
+      <!-- ══ OUTPUT ══ -->
       <div id="grOutput">
-        <div style="text-align:center;padding:70px 20px;color:var(--muted);">
-          <div style="width:72px;height:72px;background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:16px;">📋</div>
-          <div style="font-size:1rem;font-weight:800;color:var(--ink2);margin-bottom:6px;">لا توجد بيانات لعرضها بعد</div>
-          <div style="font-size:.82rem;color:var(--muted);margin-bottom:18px;">أضف نتائج من صفحة "النتائج النهائية" ثم اختر الفلاتر لعرض الكشف</div>
+        <div style="text-align:center;padding:70px 20px;">
+          <div style="width:80px;height:80px;background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-radius:22px;display:inline-flex;align-items:center;justify-content:center;font-size:2.3rem;margin-bottom:18px;box-shadow:0 4px 18px rgba(21,101,192,.12);">📋</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--ink2);margin-bottom:6px;">لا توجد بيانات لعرضها</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">أضف نتائج من صفحة "النتائج النهائية" ثم اختر الفلاتر</div>
           <button class="btn btn-primary btn-sm" onclick="showView('finalresults')">📥 انتقل لإضافة النتائج</button>
         </div>
       </div>
 
     </div>
-
     <div class="page-view" id="view-settings">
       <div class="page-header">
         <div><div class="page-title">⚙️ إعدادات النظام</div><div class="page-sub">تخصيص بيانات المدرسة والمظهر</div></div>
@@ -4755,7 +4853,7 @@ async function doLogin(){
       <!-- اختيار القالب -->
       <div style="margin-bottom:16px;">
         <div style="font-size:.84rem;font-weight:800;color:var(--muted);margin-bottom:10px;">🎨 اختر قالب الشهادة:</div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;" id="templatePicker">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;row-gap:12px;" id="templatePicker">
 
           <!-- القالب 1: الكلاسيكي الأخضر -->
           <div class="tpl-thumb active" data-tpl="1" onclick="selectTemplate(1)" title="الكلاسيكي الأخضر" style="cursor:pointer;">
@@ -4851,6 +4949,136 @@ async function doLogin(){
               <line x1="82" y1="72" x2="112" y2="72" stroke="#be185d" stroke-width="1" opacity=".45"/>
             </svg>
             <div style="font-size:.67rem;font-weight:800;color:#be185d;text-align:center;margin-top:4px;">الوردي الأنيق</div>
+          </div>
+
+
+          <!-- القالب 6: الزخرفة الإسلامية — نجمة ثمانية -->
+          <div class="tpl-thumb" data-tpl="6" onclick="selectTemplate(6)" title="الزخرفة الإسلامية" style="cursor:pointer;">
+            <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;display:block;border:2.5px solid #7b3a10;box-shadow:0 3px 12px rgba(123,58,16,.28);">
+              <defs>
+                <linearGradient id="tg6bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fdf6ee"/><stop offset="100%" stop-color="#faebd0"/></linearGradient>
+              </defs>
+              <rect width="140" height="90" fill="url(#tg6bg)"/>
+              <!-- نمط هندسي إسلامي في الزوايا -->
+              <g opacity=".20" fill="#7b3a10">
+                <polygon points="0,0 12,0 0,12"/>
+                <polygon points="140,0 128,0 140,12"/>
+                <polygon points="0,90 12,90 0,78"/>
+                <polygon points="140,90 128,90 140,78"/>
+              </g>
+              <!-- نجمة ثمانية مركزية -->
+              <g transform="translate(70,26)" fill="none" stroke="#7b3a10" stroke-width="1">
+                <polygon points="0,-10 2.5,-2.5 10,-2.5 4.5,2 6.5,10 0,5.5 -6.5,10 -4.5,2 -10,-2.5 -2.5,-2.5" fill="#7b3a10" opacity=".25"/>
+                <circle cx="0" cy="0" r="12" stroke-width=".7" opacity=".4"/>
+              </g>
+              <!-- خطوط زخرفية -->
+              <line x1="10" y1="0" x2="10" y2="90" stroke="#7b3a10" stroke-width=".6" opacity=".20"/>
+              <line x1="130" y1="0" x2="130" y2="90" stroke="#7b3a10" stroke-width=".6" opacity=".20"/>
+              <line x1="0" y1="8" x2="140" y2="8" stroke="#7b3a10" stroke-width=".7" opacity=".22"/>
+              <line x1="0" y1="82" x2="140" y2="82" stroke="#7b3a10" stroke-width=".7" opacity=".22"/>
+              <rect x="35" y="42" width="70" height="5" rx="2.5" fill="#7b3a10" opacity=".55"/>
+              <rect x="45" y="51" width="50" height="3" rx="1.5" fill="#a0522d" opacity=".38"/>
+              <rect x="28" y="59" width="84" height="2" rx="1" fill="#a0522d" opacity=".25"/>
+              <line x1="28" y1="73" x2="58" y2="73" stroke="#7b3a10" stroke-width="1" opacity=".45"/>
+              <line x1="82" y1="73" x2="112" y2="73" stroke="#7b3a10" stroke-width="1" opacity=".45"/>
+            </svg>
+            <div style="font-size:.67rem;font-weight:800;color:#7b3a10;text-align:center;margin-top:4px;">الزخرفة الإسلامية</div>
+          </div>
+
+          <!-- القالب 7: الكوفي العريق — أزرق فيروزي -->
+          <div class="tpl-thumb" data-tpl="7" onclick="selectTemplate(7)" title="الكوفي العريق" style="cursor:pointer;">
+            <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;display:block;border:2.5px solid #0e7490;box-shadow:0 3px 12px rgba(14,116,144,.28);">
+              <defs>
+                <linearGradient id="tg7bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0fdff"/><stop offset="100%" stop-color="#cffafe"/></linearGradient>
+              </defs>
+              <rect width="140" height="90" fill="url(#tg7bg)"/>
+              <!-- شريط علوي وسفلي بنمط كوفي -->
+              <rect x="0" y="0" width="140" height="9" fill="#0e7490" opacity=".85"/>
+              <rect x="0" y="81" width="140" height="9" fill="#0e7490" opacity=".85"/>
+              <!-- نمط هندسي داخل الشريط -->
+              <g fill="white" opacity=".35">
+                <rect x="5" y="2" width="5" height="5" rx=".5"/>
+                <rect x="15" y="2" width="5" height="5" rx=".5"/>
+                <rect x="25" y="2" width="5" height="5" rx=".5"/>
+                <rect x="110" y="2" width="5" height="5" rx=".5"/>
+                <rect x="120" y="2" width="5" height="5" rx=".5"/>
+                <rect x="130" y="2" width="5" height="5" rx=".5"/>
+              </g>
+              <!-- دائرة هلال -->
+              <circle cx="70" cy="26" r="10" fill="none" stroke="#0e7490" stroke-width="1.2"/>
+              <circle cx="74" cy="24" r="7.5" fill="url(#tg7bg)"/>
+              <circle cx="70" cy="26" r="3" fill="#0e7490" opacity=".3"/>
+              <rect x="35" y="40" width="70" height="5" rx="2.5" fill="#0e7490" opacity=".65"/>
+              <rect x="45" y="49" width="50" height="3" rx="1.5" fill="#0891b2" opacity=".4"/>
+              <rect x="28" y="57" width="84" height="2.5" rx="1.2" fill="#0891b2" opacity=".28"/>
+              <rect x="32" y="63" width="76" height="2.5" rx="1.2" fill="#0891b2" opacity=".22"/>
+              <line x1="28" y1="74" x2="58" y2="74" stroke="#0e7490" stroke-width="1" opacity=".5"/>
+              <line x1="82" y1="74" x2="112" y2="74" stroke="#0e7490" stroke-width="1" opacity=".5"/>
+            </svg>
+            <div style="font-size:.67rem;font-weight:800;color:#0e7490;text-align:center;margin-top:4px;">الكوفي العريق</div>
+          </div>
+
+          <!-- القالب 8: الأرابيسك الذهبي — أسود وذهب -->
+          <div class="tpl-thumb" data-tpl="8" onclick="selectTemplate(8)" title="الأرابيسك الذهبي" style="cursor:pointer;">
+            <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;display:block;border:2.5px solid #d4a017;box-shadow:0 3px 14px rgba(212,160,23,.35);">
+              <defs>
+                <linearGradient id="tg8bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d0d0d"/><stop offset="50%" stop-color="#1a1400"/><stop offset="100%" stop-color="#0a0800"/></linearGradient>
+                <radialGradient id="tg8glow" cx="50%" cy="35%" r="45%"><stop offset="0%" stop-color="#d4a017" stop-opacity=".22"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+              </defs>
+              <rect width="140" height="90" fill="url(#tg8bg)"/>
+              <ellipse cx="70" cy="28" rx="52" ry="32" fill="url(#tg8glow)"/>
+              <!-- إطار ذهبي مزدوج -->
+              <rect x="4" y="4" width="132" height="82" fill="none" stroke="#d4a017" stroke-width="1.4" rx="2" opacity=".80"/>
+              <rect x="8" y="8" width="124" height="74" fill="none" stroke="#d4a017" stroke-width=".5" stroke-dasharray="4,3" rx="1" opacity=".40"/>
+              <!-- نجمة وسط ذهبية -->
+              <polygon points="70,13 72.5,20 80,20 74,24.5 76.5,32 70,27.5 63.5,32 66,24.5 60,20 67.5,20" fill="#d4a017" opacity=".55"/>
+              <rect x="35" y="37" width="70" height="5" rx="2.5" fill="#d4a017" opacity=".75"/>
+              <rect x="45" y="46" width="50" height="3" rx="1.5" fill="#d4a017" opacity=".42"/>
+              <rect x="28" y="54" width="84" height="2" rx="1" fill="#d4a017" opacity=".28"/>
+              <rect x="32" y="60" width="76" height="2" rx="1" fill="#d4a017" opacity=".22"/>
+              <!-- خطوط توقيع -->
+              <line x1="28" y1="74" x2="58" y2="74" stroke="#d4a017" stroke-width="1" opacity=".55"/>
+              <line x1="82" y1="74" x2="112" y2="74" stroke="#d4a017" stroke-width="1" opacity=".55"/>
+              <!-- زخارف أركان -->
+              <circle cx="14" cy="14" r="4" fill="none" stroke="#d4a017" stroke-width=".8" opacity=".45"/>
+              <circle cx="126" cy="14" r="4" fill="none" stroke="#d4a017" stroke-width=".8" opacity=".45"/>
+              <circle cx="14" cy="76" r="4" fill="none" stroke="#d4a017" stroke-width=".8" opacity=".45"/>
+              <circle cx="126" cy="76" r="4" fill="none" stroke="#d4a017" stroke-width=".8" opacity=".45"/>
+            </svg>
+            <div style="font-size:.67rem;font-weight:800;color:#d4a017;text-align:center;margin-top:4px;">الأرابيسك الذهبي</div>
+          </div>
+
+          <!-- القالب 9: الأخضر الزمردي — نمط أندلسي -->
+          <div class="tpl-thumb" data-tpl="9" onclick="selectTemplate(9)" title="الزمرد الأندلسي" style="cursor:pointer;">
+            <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;display:block;border:2.5px solid #065f46;box-shadow:0 3px 12px rgba(6,95,70,.30);">
+              <defs>
+                <linearGradient id="tg9bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0fdf9"/><stop offset="100%" stop-color="#d1fae5"/></linearGradient>
+              </defs>
+              <rect width="140" height="90" fill="url(#tg9bg)"/>
+              <!-- شريط زخرفي علوي بنمط متكرر -->
+              <rect x="0" y="0" width="140" height="6" fill="#065f46" opacity=".70"/>
+              <rect x="0" y="84" width="140" height="6" fill="#065f46" opacity=".70"/>
+              <!-- نمط هندسي أندلسي -->
+              <g fill="#065f46" opacity=".12">
+                <rect x="0" y="6" width="14" height="14" rx="7"/>
+                <rect x="126" y="6" width="14" height="14" rx="7"/>
+                <rect x="0" y="70" width="14" height="14" rx="7"/>
+                <rect x="126" y="70" width="14" height="14" rx="7"/>
+              </g>
+              <!-- نجمة سداسية -->
+              <g transform="translate(70,26)" fill="none" stroke="#065f46" stroke-width="1.1">
+                <polygon points="0,-10 8.66,5 -8.66,5" opacity=".45"/>
+                <polygon points="0,10 8.66,-5 -8.66,-5" opacity=".45"/>
+                <circle cx="0" cy="0" r="4" fill="#065f46" opacity=".22"/>
+              </g>
+              <rect x="35" y="41" width="70" height="5" rx="2.5" fill="#065f46" opacity=".60"/>
+              <rect x="45" y="50" width="50" height="3" rx="1.5" fill="#047857" opacity=".38"/>
+              <rect x="28" y="58" width="84" height="2.5" rx="1.2" fill="#047857" opacity=".25"/>
+              <rect x="32" y="64" width="76" height="2" rx="1" fill="#047857" opacity=".20"/>
+              <line x1="28" y1="75" x2="58" y2="75" stroke="#065f46" stroke-width="1" opacity=".45"/>
+              <line x1="82" y1="75" x2="112" y2="75" stroke="#065f46" stroke-width="1" opacity=".45"/>
+            </svg>
+            <div style="font-size:.67rem;font-weight:800;color:#065f46;text-align:center;margin-top:4px;">الزمرد الأندلسي</div>
           </div>
 
         </div>
@@ -4963,7 +5191,7 @@ async function doLogin(){
 
 <!-- ═══ نافذة معاينة الشهادة ═══ -->
 <div class="modal-overlay" id="certPreviewModal">
-  <div class="modal-box" style="width:900px;max-width:99vw;max-height:95vh;">
+  <div class="modal-box" style="width:min(980px,97vw);max-height:95vh;overflow-y:auto;border-radius:18px;">
     <div class="modal-header">
       <h2>👁️ معاينة الشهادة</h2>
       <div style="display:flex;gap:8px;">
@@ -4971,8 +5199,16 @@ async function doLogin(){
         <button class="modal-close" onclick="document.getElementById('certPreviewModal').classList.remove('open')">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="padding:20px;background:#f0f4f8;">
-      <div id="certPreviewArea"></div>
+    <div class="modal-body" style="padding:24px 20px;background:#e8edf5;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <!-- شريط المعلومات -->
+      <div style="width:100%;display:flex;align-items:center;justify-content:space-between;background:white;border-radius:10px;padding:10px 16px;font-size:.78rem;color:#64748b;font-weight:700;border:1px solid #e2e8f0;">
+        <span>📐 مقاس الطباعة: A4 أفقي (271 × 192 مم)</span>
+        <span style="color:#1565c0;">المعاينة مُصغَّرة لتناسب الشاشة</span>
+      </div>
+      <!-- حاوي المعاينة مع تصغير ذكي -->
+      <div style="width:100%;overflow-x:auto;display:flex;justify-content:center;">
+        <div id="certPreviewArea" style="transform-origin:top center;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -7504,10 +7740,11 @@ function renderAnalytics(){
     grRefreshFilters(all);
 
     if(!all.length){
-      out.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted);">'
-        +'<div style="font-size:3rem;margin-bottom:12px;">📭</div>'
-        +'<div style="font-size:.92rem;font-weight:700;">لا توجد نتائج — أضف من صفحة "النتائج النهائية"</div>'
-        +'<button class="btn btn-primary btn-sm" onclick="showView(\'finalresults\')" style="margin-top:16px;">📥 انتقل لإضافة النتائج</button>'
+      out.innerHTML = '<div style="text-align:center;padding:68px 20px;">'
+        +'<div style="width:80px;height:80px;background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-radius:22px;display:inline-flex;align-items:center;justify-content:center;font-size:2.3rem;margin-bottom:18px;box-shadow:0 4px 18px rgba(21,101,192,.12);">📭</div>'
+        +'<div style="font-size:1.05rem;font-weight:800;color:#0d1b2a;margin-bottom:6px;">لا توجد نتائج بعد</div>'
+        +'<div style="font-size:.82rem;color:#64748b;margin-bottom:20px;">أضف نتائج من صفحة النتائج النهائية ثم عُد هنا</div>'
+        +'<button class="btn btn-primary btn-sm" onclick="showView(\'finalresults\')">📥 انتقل لإضافة النتائج</button>'
         +'</div>';
       return;
     }
@@ -7518,16 +7755,28 @@ function renderAnalytics(){
     var fSem  = document.getElementById('grFilterSemester')?.value||'';
     var mode  = (document.getElementById('grViewMode')?.value)||'students';
 
+    var fSearch = (document.getElementById('grSearchInput')?.value||'').trim().toLowerCase();
+
     var entries = all.filter(function(e){
       if(fLvl && grGuessLevel(e.className)!==fLvl) return false;
       if(fCls && e.className!==fCls) return false;
       if(fSub && e.subject!==fSub)   return false;
       if(fSem && e.semester && !e.semester.includes(fSem)) return false;
+      if(fSearch){
+        var inSubj = e.subject.toLowerCase().includes(fSearch);
+        var inCls  = (e.className||'').toLowerCase().includes(fSearch);
+        var inStu  = e.students && e.students.some(function(s){ return s.name.toLowerCase().includes(fSearch); });
+        if(!inSubj && !inCls && !inStu) return false;
+      }
       return true;
     });
 
     if(!entries.length){
-      out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:2rem;margin-bottom:8px;">🔍</div><div style="font-weight:700;">لا توجد نتائج بهذه الفلاتر</div></div>';
+      out.innerHTML = '<div style="text-align:center;padding:60px 20px;">'
+        +'<div style="width:72px;height:72px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:16px;box-shadow:0 4px 14px rgba(245,158,11,.15);">🔍</div>'
+        +'<div style="font-size:1rem;font-weight:800;color:#0d1b2a;margin-bottom:6px;">لا توجد نتائج بهذه الفلاتر</div>'
+        +'<div style="font-size:.82rem;color:#64748b;">جرّب تغيير الفلاتر أو اختيار مرحلة أخرى</div>'
+        +'</div>';
       return;
     }
 
@@ -7548,6 +7797,10 @@ function renderAnalytics(){
     var pctNum2   = parseFloat(globalPct)||0;
     var kpiPctCol2 = pctNum2>=80?'#059669':pctNum2>=60?'#f59e0b':'#ef4444';
 
+    // ── إضافة كلاس الأنيميشن للـ output ──
+    document.getElementById('grOutput').style.opacity = '0';
+    setTimeout(function(){ document.getElementById('grOutput').style.opacity=''; },10);
+
     html += '<div class="gr-kpi-strip">'
       +[
         {svg:'<svg viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
@@ -7561,9 +7814,9 @@ function renderAnalytics(){
         {svg:'<svg viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>',
           val:passRate2+'%', label:'نسبة النجاح', col:'#0891b2'},
       ].map(function(k){
-        return '<div class="gr-kpi" style="border-top:3px solid '+k.col+';">'
-          +'<div style="width:28px;height:28px;margin:0 auto 6px;">'+k.svg+'</div>'
-          +'<div class="gr-kpi-val" style="color:'+k.col+';">'+k.val+'</div>'
+        return '<div class="gr-kpi gr-animate" style="--gr-kpi-color:'+k.col+';">'
+          +'<div class="gr-kpi-icon" style="background:'+k.col+'18;">'+k.svg+'</div>'
+          +'<div class="gr-kpi-val">'+k.val+'</div>'
           +'<div class="gr-kpi-lbl">'+k.label+'</div>'
         +'</div>';
       }).join('')
@@ -7579,7 +7832,15 @@ function renderAnalytics(){
       html += grBuildSummary(entries);
     }
 
+    out.style.opacity = '0';
+    out.style.transform = 'translateY(10px)';
     out.innerHTML = html;
+    requestAnimationFrame(function(){
+      out.style.transition = 'opacity .28s ease, transform .28s ease';
+      out.style.opacity = '1';
+      out.style.transform = 'translateY(0)';
+      setTimeout(function(){ out.style.transition=''; out.style.transform=''; }, 300);
+    });
   };
 
   // ══════════════════════════════════════════
@@ -7622,22 +7883,59 @@ function renderAnalytics(){
       // حساب رتبة كل طالب + ألوان
       var rankColors = ['#f59e0b','#94a3b8','#cd7f32'];
 
-      html += '<div id="grPrintArea"><div class="gr-card">';
+      html += '<div id="grPrintArea">';
       // ── شريط عنوان الكشف ──
       var clsAvg = globalAvgForClass(entries);
       var clsAvgNum = parseFloat(clsAvg)||0;
       var clsCol = clsAvgNum>=80?'#059669':clsAvgNum>=60?'#f59e0b':'#ef4444';
+
+      // ── ملخص إحصاءات الفصل السريع ──
+      var totalStudents = stuList.length;
+      var passStudents  = 0;
+      stuList.forEach(function(name){
+        var scores=stuMap[name]; var tot=0,maxTot=0;
+        subjects.forEach(function(s){var v=scores[s];if(v){tot+=v.score;maxTot+=v.max;}});
+        var pct=maxTot?(tot/maxTot*100):0;
+        if(pct>=60) passStudents++;
+      });
+      var passRateCls = totalStudents?(passStudents/totalStudents*100).toFixed(0):0;
+
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px;">'
+        +[
+          {icon:'🏫', val:fCls,         lbl:'الفصل',         col:'#1565c0'},
+          {icon:'👥', val:totalStudents, lbl:'عدد الطلاب',    col:'#7c3aed'},
+          {icon:'📚', val:subjects.length,lbl:'المواد',       col:'#0891b2'},
+          {icon:'📊', val:clsAvg,        lbl:'المتوسط العام', col:clsCol},
+          {icon:'✅', val:passRateCls+'%',lbl:'نسبة النجاح',  col:passRateCls>=60?'#059669':'#ef4444'},
+        ].map(function(k){
+          return '<div class="gr-kpi gr-animate" style="--gr-kpi-color:'+k.col+';">'
+            +'<div class="gr-kpi-icon" style="background:'+k.col+'18;font-size:1rem;">'+k.icon+'</div>'
+            +'<div class="gr-kpi-val" style="font-size:1.1rem;">'+k.val+'</div>'
+            +'<div class="gr-kpi-lbl">'+k.lbl+'</div>'
+          +'</div>';
+        }).join('')
+      +'</div>';
+
+      html += '<div class="gr-card gr-animate">';
       html += '<div class="gr-section-header">'
-        +'<div>'
-          +'<div style="font-size:1.05rem;font-weight:900;">كشف درجات — '+fCls+'</div>'
-          +'<div style="font-size:.75rem;opacity:.82;margin-top:3px;">'
-            +subjects.length+' مادة &nbsp;·&nbsp; '+stuList.length+' طالب &nbsp;·&nbsp; '
-            +'متوسط الفصل: <strong>'+clsAvg+'</strong>'
+        +'<div style="display:flex;align-items:center;gap:10px;">'
+          +'<div style="width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📋</div>'
+          +'<div>'
+            +'<div style="font-size:1rem;font-weight:900;">كشف درجات — '+fCls+'</div>'
+            +'<div style="font-size:.73rem;opacity:.82;margin-top:2px;">'
+              +subjects.length+' مادة &nbsp;·&nbsp; '+stuList.length+' طالب'
+            +'</div>'
           +'</div>'
         +'</div>'
-        +'<div style="background:rgba(255,255,255,.18);border-radius:12px;padding:8px 18px;text-align:center;">'
-          +'<div style="font-size:1.4rem;font-weight:900;">'+clsAvg+'</div>'
-          +'<div style="font-size:.68rem;opacity:.85;">متوسط الفصل</div>'
+        +'<div style="display:flex;gap:8px;align-items:center;">'
+          +'<div style="background:rgba(255,255,255,.18);border-radius:10px;padding:7px 16px;text-align:center;">'
+            +'<div style="font-size:1.3rem;font-weight:900;">'+clsAvg+'</div>'
+            +'<div style="font-size:.66rem;opacity:.85;">متوسط الفصل</div>'
+          +'</div>'
+          +'<div style="background:rgba(255,255,255,.18);border-radius:10px;padding:7px 16px;text-align:center;">'
+            +'<div style="font-size:1.3rem;font-weight:900;color:'+(parseFloat(passRateCls)>=60?'#86efac':'#fca5a5')+';">'+passRateCls+'%</div>'
+            +'<div style="font-size:.66rem;opacity:.85;">نسبة النجاح</div>'
+          +'</div>'
         +'</div>'
       +'</div>';
 
@@ -7665,9 +7963,10 @@ function renderAnalytics(){
           var pc  = parseFloat(pct)||0;
           var ptc = pc>=80?'#059669':pc>=60?'#f59e0b':'#ef4444';
           var medal = i<3 ? '<span style="font-size:.85rem;">'+['🥇','🥈','🥉'][i]+'</span> ' : '';
+          var dispName = fSearch ? name.replace(new RegExp('('+fSearch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:#fef08a;border-radius:2px;padding:0 1px;">$1</mark>') : name;
           return '<tr class="'+(i%2===0?'gr-row-odd':'gr-row-even')+'">'
             +'<td class="gr-td-num">'+(i+1)+'</td>'
-            +'<td class="gr-td-name">'+medal+name+'</td>'
+            +'<td class="gr-td-name">'+medal+dispName+'</td>'
             +subjects.map(function(s){
               var v=scores[s];
               if(!v) return '<td class="gr-td-score gr-td-empty">—</td>';
@@ -7694,7 +7993,7 @@ function renderAnalytics(){
         }).join('')
         +'<td colspan="3" style="text-align:center;color:#1565c0;font-weight:800;">متوسط الفصل: '+globalAvgForClass(entries)+'</td>'
         +'</tr>'
-        +'</tbody></table></div></div></div>';
+        +'</tbody></table></div></div></div></div>';
 
     } else {
       // عرض ملخص لكل الفصول
@@ -7716,7 +8015,7 @@ function renderAnalytics(){
         });
         var clsGlobalAvg = globalAvgForClass(clsEntries);
 
-        html += '<div class="gr-card">'
+        html += '<div class="gr-card gr-animate">'
           +'<div class="gr-section-header">'
             +'<div style="display:flex;align-items:center;gap:10px;">'
               +'<div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏫</div>'
@@ -7781,7 +8080,7 @@ function renderAnalytics(){
       var distTotal = Object.values(e.dist).reduce(function(a,b){return a+b;},0);
       var sortedStudents = e.students.slice().sort(function(a,b){return b.score-a.score;});
 
-      html += '<div class="gr-card">'
+      html += '<div class="gr-card gr-animate">'
         // ── رأس ذكي بلون المادة ──
         +'<div style="background:linear-gradient(135deg,'+col+'dd,'+col+'99);color:white;padding:18px 22px;">'
           +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">'
@@ -7921,8 +8220,10 @@ function renderAnalytics(){
           +subjects.map(function(s){
             var e=clsData[s];
             if(!e) return '<td class="gr-td-score gr-td-empty">—</td>';
-            var ec=parseFloat(e.pct)>=80?'#059669':parseFloat(e.pct)>=60?'#f59e0b':'#ef4444';
-            return '<td class="gr-td-score">'
+            var pcv=parseFloat(e.pct);
+            var ec=pcv>=80?'#059669':pcv>=60?'#f59e0b':'#ef4444';
+            var cellBg=pcv>=80?'rgba(5,150,105,.06)':pcv>=60?'rgba(245,158,11,.06)':'rgba(239,68,68,.05)';
+            return '<td class="gr-td-score" style="background:'+cellBg+'!important;">'
               +'<div style="font-weight:900;color:#0d1b2a;font-size:.86rem;">'+e.avg.toFixed(1)+'<span style="color:#94a3b8;font-size:.68rem;font-weight:400;"> / '+e.maxScore+'</span></div>'
               +'<div style="font-size:.68rem;color:'+ec+';font-weight:800;margin:2px 0;">'+parseFloat(e.pct).toFixed(1)+'%</div>'
               +'<div class="gr-progress"><div class="gr-progress-bar" style="background:'+ec+';width:'+Math.min(parseFloat(e.pct),100)+'%;"></div></div>'
@@ -11443,11 +11744,15 @@ function selectTemplate(n){
   currentTpl = n;
   document.getElementById('honorFTemplate').value = n;
   document.querySelectorAll('.tpl-thumb').forEach(el=>{
-    const inner = el.querySelector('div');
-    if(parseInt(el.dataset.tpl)===n){
-      inner.style.opacity='1'; inner.style.transform='scale(1.06)'; inner.style.boxShadow='0 0 0 3px #1565c0';
-    } else {
-      inner.style.opacity='.7'; inner.style.transform=''; inner.style.boxShadow='';
+    const active = parseInt(el.dataset.tpl)===n;
+    el.classList.toggle('active', active);
+    const svg = el.querySelector('svg');
+    if(svg){
+      svg.style.opacity    = active ? '1' : '.72';
+      svg.style.transform  = active ? 'scale(1.04)' : '';
+      svg.style.boxShadow  = active ? '0 0 0 3px #1565c0' : '';
+      svg.style.borderRadius = '8px';
+      svg.style.transition = 'all .18s';
     }
   });
 }
@@ -11634,7 +11939,7 @@ function renderHonors(){
   empty.style.display='none';
 
   const stageColors = {'ابتدائي':'var(--gold)','متوسط':'var(--sky)','ثانوي':'var(--plum)'};
-  const tplColors   = {1:'#2e8b6e',2:'#b8860b',3:'#1d4ed8',4:'#7c3aed',5:'#be185d'};
+  const tplColors   = {1:'#2e8b6e',2:'#b8860b',3:'#1d4ed8',4:'#7c3aed',5:'#be185d',6:'#7b3a10',7:'#0e7490',8:'#d4a017',9:'#065f46'};
   const dateStr = h => h.date ? new Date(h.date).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}) : '—';
 
   grid.innerHTML = filtered.map(h=>{
@@ -11794,8 +12099,33 @@ function previewCertificateById(id){
 
 function showCertPreview(h){
   const area = document.getElementById('certPreviewArea');
+  if(!area){ toast('خطأ في المعاينة','error'); return; }
   area.innerHTML = buildCertHTML(h);
   document.getElementById('certPreviewModal').classList.add('open');
+
+  // ── تصغير ذكي: 271mm = ~1024px @ 96dpi ──
+  function scalePreview(){
+    var certEl = area.querySelector('.cert-unified');
+    if(!certEl) return;
+    // force layout then measure
+    var naturalW = certEl.getBoundingClientRect().width || 1024;
+    var containerW = area.parentElement ? area.parentElement.clientWidth - 32 : 700;
+    var scale = Math.min(1, containerW / naturalW);
+    area.style.transform = 'scale(' + scale + ')';
+    area.style.transformOrigin = 'top center';
+    area.style.display = 'block';
+    // adjust container height so modal scrolls correctly
+    var naturalH = certEl.getBoundingClientRect().height || 770;
+    area.style.height = (naturalH * scale) + 'px';
+    area.style.overflow = 'visible';
+  }
+  requestAnimationFrame(function(){
+    scalePreview();
+    // second pass after fonts load
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(scalePreview);
+    }
+  });
 }
 
 // ── شعار مدارس البشرى (خلفية شفافة تتطابق مع لون التقرير) ──
@@ -11842,8 +12172,8 @@ function buildMoeLogo(moeLogoUrl, accentColor, bgColor){
 // ── بناء HTML الشهادة — 5 قوالب محسّنة ──
 function buildCertHTML(h){
   const dateStr = h.date
-    ? new Date(h.date).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'})
-    : new Date().toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'});
+    ? new Date(h.date).toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'long',day:'numeric'})
+    : new Date().toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'long',day:'numeric'});
   const dirName  = h.director  || '___________________';
   const couName  = h.counselor || '___________________';
   const descText = h.desc || HONOR_DESCS[h.type] || '';
@@ -11872,11 +12202,36 @@ function buildCertHTML(h){
 
   // ── SVG عنوان الشهادة ──
   function titleSVG(c1,c2,uid){
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 72" width="420" height="64" style="display:block;margin:0 auto 2px;">
-      <defs><linearGradient id="tg_${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${c1}"/><stop offset="50%" stop-color="${c2}"/><stop offset="100%" stop-color="${c1}"/>
-      </linearGradient></defs>
-      <text x="240" y="54" text-anchor="middle" font-family="'Amiri','Traditional Arabic',serif" font-size="48" font-weight="700" fill="url(#tg_${uid})" font-style="italic">شهادة ${h.type}</text>
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 80" width="440" height="68" style="display:block;margin:0 auto 2px;">
+      <defs>
+        <linearGradient id="tg_${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="${c1}"/><stop offset="35%" stop-color="${c2}"/>
+          <stop offset="65%" stop-color="${c2}"/><stop offset="100%" stop-color="${c1}"/>
+        </linearGradient>
+        <filter id="tgshadow_${uid}" x="-8%" y="-8%" width="116%" height="130%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="${c1}" flood-opacity="0.22"/>
+        </filter>
+        <filter id="tgglow_${uid}" x="-15%" y="-15%" width="130%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+      </defs>
+      <!-- ظل ناعم خلف النص -->
+      <text x="250" y="60" text-anchor="middle" font-family="'Amiri','Traditional Arabic',serif"
+        font-size="50" font-weight="700" fill="${c2}" opacity="0.12" font-style="italic"
+        transform="translate(1,3)">شهادة ${h.type}</text>
+      <!-- النص الرئيسي مع gradient -->
+      <text x="250" y="58" text-anchor="middle" font-family="'Amiri','Traditional Arabic',serif"
+        font-size="50" font-weight="700" fill="url(#tg_${uid})" font-style="italic"
+        filter="url(#tgshadow_${uid})">شهادة ${h.type}</text>
+      <!-- خط زخرفي تحت العنوان -->
+      <g fill="none" stroke="${c2}" opacity="0.45">
+        <line x1="80" y1="70" x2="190" y2="70" stroke-width="1.2"/>
+        <line x1="310" y1="70" x2="420" y2="70" stroke-width="1.2"/>
+        <circle cx="250" cy="70" r="3.5" fill="${c2}" opacity="0.5"/>
+        <circle cx="216" cy="70" r="2" fill="${c2}" opacity="0.4"/>
+        <circle cx="284" cy="70" r="2" fill="${c2}" opacity="0.4"/>
+      </g>
     </svg>`;
   }
 
@@ -11915,113 +12270,196 @@ function buildCertHTML(h){
 
   // ── SVG زخرفة الهيدر ──
   function hdrOrn(c){
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 54" width="240" height="40" style="display:block;margin:0 auto;">
-      <g fill="none" stroke="${c}" stroke-width="1.1" opacity=".48">
-        <path d="M160,6 L172,18 L184,6 L196,18 L208,6"/>
-        <path d="M160,6 L148,18 L136,6 L124,18 L112,6"/>
-        <circle cx="160" cy="6" r="4.5" fill="${c}22"/>
-        <path d="M160,6 L160,48"/>
-        <path d="M136,18 Q160,36 184,18"/>
-        <path d="M112,6 Q160,46 208,6"/>
-        <circle cx="112" cy="6" r="3" fill="${c}" opacity=".38"/>
-        <circle cx="208" cy="6" r="3" fill="${c}" opacity=".38"/>
-        <path d="M80,18 Q96,10 112,6" stroke-width=".9" opacity=".38"/>
-        <path d="M240,18 Q224,10 208,6" stroke-width=".9" opacity=".38"/>
-        <path d="M55,28 Q68,20 80,18" stroke-width=".8" opacity=".28"/>
-        <path d="M265,28 Q252,20 240,18" stroke-width=".8" opacity=".28"/>
-      </g>
-    </svg>`;
+    const hid = 'h'+Math.random().toString(36).slice(2,7);
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 62" width="280" height="48" style="display:block;margin:0 auto;">'
+      +'<defs>'
+        +'<linearGradient id="horngrad_'+hid+'" x1="0%" y1="0%" x2="100%" y2="0%">'
+          +'<stop offset="0%" stop-color="'+c+'" stop-opacity="0"/>'
+          +'<stop offset="30%" stop-color="'+c+'" stop-opacity="0.6"/>'
+          +'<stop offset="50%" stop-color="'+c+'" stop-opacity="0.85"/>'
+          +'<stop offset="70%" stop-color="'+c+'" stop-opacity="0.6"/>'
+          +'<stop offset="100%" stop-color="'+c+'" stop-opacity="0"/>'
+        +'</linearGradient>'
+      +'</defs>'
+      +'<g fill="none">'
+        +'<path d="M140,52 Q140,16 180,10 Q220,16 220,52" stroke="'+c+'" stroke-width="1.3" opacity=".52" fill="'+c+'0a"/>'
+        +'<g transform="translate(180,28)" fill="'+c+'" opacity=".55">'
+          +'<polygon points="0,-9 2.5,-2.5 9,-2.5 3.5,1.5 5.5,8.5 0,4.5 -5.5,8.5 -3.5,1.5 -9,-2.5 -2.5,-2.5"/>'
+        +'</g>'
+        +'<path d="M60,52 Q80,40 110,38 Q130,36 140,52" stroke="'+c+'" stroke-width="1" opacity=".38" fill="none"/>'
+        +'<path d="M300,52 Q280,40 250,38 Q230,36 220,52" stroke="'+c+'" stroke-width="1" opacity=".38" fill="none"/>'
+        +'<path d="M0,52 Q30,45 60,52" stroke="'+c+'" stroke-width=".85" opacity=".25" fill="none"/>'
+        +'<path d="M360,52 Q330,45 300,52" stroke="'+c+'" stroke-width=".85" opacity=".25" fill="none"/>'
+        +'<line x1="0" y1="54" x2="360" y2="54" stroke="url(#horngrad_'+hid+')" stroke-width="1.4"/>'
+        +'<circle cx="140" cy="52" r="3" fill="'+c+'" opacity=".45"/>'
+        +'<circle cx="220" cy="52" r="3" fill="'+c+'" opacity=".45"/>'
+        +'<circle cx="100" cy="44" r="2" fill="'+c+'" opacity=".32"/>'
+        +'<circle cx="260" cy="44" r="2" fill="'+c+'" opacity=".32"/>'
+        +'<circle cx="60" cy="52" r="1.5" fill="'+c+'" opacity=".28"/>'
+        +'<circle cx="300" cy="52" r="1.5" fill="'+c+'" opacity=".28"/>'
+      +'</g>'
+    +'</svg>';
   }
 
   // ── الهيكل الموحّد ──
   function certShell(cfg){
-    const {bg,borderC,accentC,textC,subC,c1,c2,extras,logoBgC} = cfg;
+    const {bg,borderC,accentC,textC,subC,c1,c2,extras,logoBgC,sideOrn:customSideOrn,crnSVG:customCrnSVG} = cfg;
     const uid = 'c'+(tpl)+'_'+Date.now().toString(36);
     return `<div id="certPrintFrame">
-    <div class="cert-unified" style="background:${bg};width:780px;height:540px;position:relative;overflow:hidden;border:3px solid ${borderC};border-radius:6px;direction:rtl;font-family:'Tajawal','Arial',sans-serif;display:flex;flex-direction:column;box-shadow:0 10px 50px rgba(0,0,0,.22);">
+    <div class="cert-unified" style="background:${bg};width:271mm;height:192mm;position:relative;overflow:hidden;border:2.5px solid ${borderC};border-radius:5px;direction:rtl;font-family:'Tajawal','Arial',sans-serif;display:flex;flex-direction:column;box-shadow:0 12px 55px rgba(0,0,0,.25);">
 
       ${extras||''}
 
-      <!-- الإطارات الداخلية -->
-      <div style="position:absolute;inset:10px;border:1px solid ${borderC}40;border-radius:4px;pointer-events:none;z-index:1;"></div>
-      <div style="position:absolute;inset:15px;border:.5px dotted ${borderC}22;border-radius:3px;pointer-events:none;z-index:1;"></div>
+      <!-- الإطارات الداخلية المزخرفة -->
+      <div style="position:absolute;inset:8px;border:1px solid ${borderC}38;border-radius:4px;pointer-events:none;z-index:1;"></div>
+      <div style="position:absolute;inset:13px;border:.5px solid ${borderC}1c;border-radius:3px;pointer-events:none;z-index:1;"></div>
+      <!-- نقاط زخرفية في منتصف كل ضلع -->
+      <div style="position:absolute;top:7px;left:50%;transform:translateX(-50%);width:10px;height:10px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.30;z-index:2;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:10px;height:10px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.30;z-index:2;pointer-events:none;"></div>
 
       <!-- الزخارف الجانبية -->
-      ${sideOrn('right',borderC)}
-      ${sideOrn('left',borderC)}
+      ${(customSideOrn||sideOrn)('right',borderC)}
+      ${(customSideOrn||sideOrn)('left',borderC)}
 
       <!-- الأركان -->
-      <div style="position:absolute;top:0;right:0;z-index:3;">${crnSVG(borderC)}</div>
-      <div style="position:absolute;top:0;left:0;z-index:3;transform:scaleX(-1);">${crnSVG(borderC)}</div>
-      <div style="position:absolute;bottom:0;right:0;z-index:3;transform:scaleY(-1);">${crnSVG(borderC)}</div>
-      <div style="position:absolute;bottom:0;left:0;z-index:3;transform:scale(-1,-1);">${crnSVG(borderC)}</div>
+      <div style="position:absolute;top:0;right:0;z-index:3;">${(customCrnSVG||crnSVG)(borderC)}</div>
+      <div style="position:absolute;top:0;left:0;z-index:3;transform:scaleX(-1);">${(customCrnSVG||crnSVG)(borderC)}</div>
+      <div style="position:absolute;bottom:0;right:0;z-index:3;transform:scaleY(-1);">${(customCrnSVG||crnSVG)(borderC)}</div>
+      <div style="position:absolute;bottom:0;left:0;z-index:3;transform:scale(-1,-1);">${(customCrnSVG||crnSVG)(borderC)}</div>
 
       <!-- المحتوى الرئيسي -->
-      <div style="position:relative;z-index:5;flex:1;display:flex;flex-direction:column;padding:18px 82px 14px;">
+      <div style="position:relative;z-index:5;flex:1;display:flex;flex-direction:column;padding:14px 80px 12px;">
 
         <!-- الهيدر -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:78px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <!-- الشعار والمدرسة -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;">
             ${logoHTML(borderC,logoBgC)}
-            <div style="font-size:9.5px;font-weight:800;color:${accentC};text-align:center;line-height:1.4;margin-top:3px;">مدارس البشرى<br><span style="font-weight:500;opacity:.8;">الأهلية</span></div>
+            <div style="font-size:9px;font-weight:900;color:${accentC};text-align:center;line-height:1.5;margin-top:4px;letter-spacing:.2px;">مدارس البشرى<br><span style="font-weight:600;opacity:.78;font-size:8.5px;">الأهلية</span></div>
           </div>
-          <div style="flex:1;text-align:center;padding:0 8px;">${hdrOrn(borderC)}</div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:78px;">
+          <!-- الزخرفة المركزية -->
+          <div style="flex:1;text-align:center;padding:0 6px;">
+            ${hdrOrn(borderC)}
+          </div>
+          <!-- وزارة التعليم -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;">
             ${moeHTML(accentC,logoBgC)}
-            <div style="font-size:9px;color:${subC};font-weight:600;text-align:center;opacity:.7;">وزارة التعليم</div>
+            <div style="font-size:9px;font-weight:700;color:${subC};text-align:center;opacity:.75;margin-top:4px;">وزارة التعليم</div>
           </div>
         </div>
 
         <!-- النص التمهيدي -->
-        <div style="text-align:center;margin-bottom:4px;">
-          <div style="font-family:'Amiri',serif;font-size:12.5px;color:${accentC};font-weight:700;">${line1}</div>
-          <div style="font-size:11.5px;color:${subC};margin-top:2px;opacity:.82;">${line2}</div>
+        <div style="text-align:center;margin-bottom:3px;">
+          <div style="font-family:'Amiri',serif;font-size:13px;color:${accentC};font-weight:700;letter-spacing:.4px;">${line1}</div>
+          <div style="font-size:11px;color:${subC};margin-top:1px;opacity:.78;font-family:'Amiri',serif;">${line2}</div>
         </div>
 
         <!-- عنوان الشهادة -->
         <div style="text-align:center;margin:2px 0;">${titleSVG(c1,c2,uid)}</div>
 
-        <!-- الفاصل الزخرفي -->
-        <div style="text-align:center;margin-bottom:7px;">
-          <svg viewBox="0 0 300 18" width="260" height="15" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;">
-            <g fill="none" stroke="${borderC}" stroke-width="1" opacity=".42">
-              <line x1="0" y1="9" x2="115" y2="9"/>
-              <line x1="185" y1="9" x2="300" y2="9"/>
-              <circle cx="150" cy="9" r="5.5" fill="${borderC}1e"/>
-              <circle cx="120" cy="9" r="3" fill="${borderC}33"/>
-              <circle cx="180" cy="9" r="3" fill="${borderC}33"/>
-            </g>
-          </svg>
+        <!-- الفاصل الزخرفي الإسلامي -->
+        <div style="text-align:center;margin-bottom:6px;">
+          ${(function(){
+            const did='d'+Math.random().toString(36).slice(2,7);
+            return '<svg viewBox="0 0 340 22" width="300" height="18" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;">'
+              +'<defs>'
+                +'<linearGradient id="divgrad_'+did+'" x1="0%" y1="0%" x2="100%" y2="0%">'
+                  +'<stop offset="0%" stop-color="'+borderC+'" stop-opacity="0"/>'
+                  +'<stop offset="25%" stop-color="'+borderC+'" stop-opacity="0.55"/>'
+                  +'<stop offset="50%" stop-color="'+borderC+'" stop-opacity="0.8"/>'
+                  +'<stop offset="75%" stop-color="'+borderC+'" stop-opacity="0.55"/>'
+                  +'<stop offset="100%" stop-color="'+borderC+'" stop-opacity="0"/>'
+                +'</linearGradient>'
+              +'</defs>'
+              +'<g fill="none">'
+                +'<line x1="0" y1="11" x2="340" y2="11" stroke="url(#divgrad_'+did+')" stroke-width="1.3"/>'
+                +'<g transform="translate(170,11)" fill="'+borderC+'" opacity=".60">'
+                  +'<polygon points="0,-6.5 1.8,-1.8 6.5,-1.8 3,1.5 4.5,6.5 0,3.5 -4.5,6.5 -3,1.5 -6.5,-1.8 -1.8,-1.8"/>'
+                +'</g>'
+                +'<g transform="translate(140,11)" stroke="'+borderC+'" stroke-width="1" opacity=".45">'
+                  +'<path d="M0,-5 L5,0 L0,5 L-5,0 Z" fill="'+borderC+'22"/>'
+                +'</g>'
+                +'<g transform="translate(200,11)" stroke="'+borderC+'" stroke-width="1" opacity=".45">'
+                  +'<path d="M0,-5 L5,0 L0,5 L-5,0 Z" fill="'+borderC+'22"/>'
+                +'</g>'
+                +'<circle cx="110" cy="11" r="2" fill="'+borderC+'" opacity=".40"/>'
+                +'<circle cx="230" cy="11" r="2" fill="'+borderC+'" opacity=".40"/>'
+                +'<circle cx="80" cy="11" r="1.5" fill="'+borderC+'" opacity=".28"/>'
+                +'<circle cx="260" cy="11" r="1.5" fill="'+borderC+'" opacity=".28"/>'
+                +'<circle cx="50" cy="11" r="1" fill="'+borderC+'" opacity=".18"/>'
+                +'<circle cx="290" cy="11" r="1" fill="'+borderC+'" opacity=".18"/>'
+              +'</g>'
+            +'</svg>';
+          })()}
         </div>
 
-        <!-- اسم الطالب -->
-        <div style="text-align:center;margin:0 0 6px;">
-          <div style="font-size:11px;color:${subC};margin-bottom:4px;opacity:.78;">تُمنح هذه الشهادة للطالب / الطالبة</div>
-          <div style="font-family:'Amiri','Traditional Arabic',serif;font-size:26px;font-weight:700;color:${textC};display:inline-block;padding:3px 28px 5px;border-bottom:2px solid ${borderC}cc;letter-spacing:.5px;">${h.name}</div>
-          <div style="font-size:10.5px;color:${subC};margin-top:3px;opacity:.72;">${h.classRoom||''} ${stageLabel?'· '+stageLabel:''}</div>
+        <!-- اسم الطالب — إطار زخرفي -->
+        <div style="text-align:center;margin:0 0 5px;">
+          <div style="font-size:10.5px;color:${subC};margin-bottom:5px;opacity:.75;font-family:'Amiri',serif;letter-spacing:.3px;">تُمنح هذه الشهادة للطالب / الطالبة</div>
+          <!-- إطار اسم الطالب -->
+          <div style="display:inline-block;position:relative;padding:6px 32px 8px;">
+            <!-- خطوط زخرفية حول الاسم -->
+            <div style="position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,${borderC}88,transparent);"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,${borderC}88,transparent);"></div>
+            <div style="position:absolute;top:0;bottom:0;right:0;width:1.5px;background:linear-gradient(180deg,transparent,${borderC}55,transparent);"></div>
+            <div style="position:absolute;top:0;bottom:0;left:0;width:1.5px;background:linear-gradient(180deg,transparent,${borderC}55,transparent);"></div>
+            <!-- معينات الأركان -->
+            <div style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            <div style="position:absolute;top:-4px;left:-4px;width:8px;height:8px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            <div style="position:absolute;bottom:-4px;right:-4px;width:8px;height:8px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            <div style="position:absolute;bottom:-4px;left:-4px;width:8px;height:8px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            <!-- الاسم -->
+            <div style="font-family:'Amiri','Traditional Arabic',serif;font-size:28px;font-weight:700;color:${textC};letter-spacing:.5px;line-height:1.2;">${h.name}</div>
+          </div>
+          <div style="font-size:10px;color:${subC};margin-top:4px;opacity:.70;">${h.classRoom||''} ${stageLabel?'&nbsp;·&nbsp;'+stageLabel:''}</div>
         </div>
 
         <!-- نص الشهادة -->
-        <div style="text-align:center;font-size:12px;color:${textC};line-height:1.9;padding:0 12px;margin-bottom:5px;opacity:.88;">
+        <div style="text-align:center;font-size:12px;color:${textC};line-height:1.85;padding:0 10px;margin-bottom:4px;opacity:.88;">
           ${descText}
-          <div style="margin-top:4px;font-size:11.5px;color:${accentC};font-weight:700;">في ${h.semester||'الفصل الدراسي'} للعام الدراسي ${h.year||'1446 - 1447 هـ'}</div>
+        </div>
+        <!-- العام الدراسي بتصميم مميز -->
+        <div style="text-align:center;margin-bottom:4px;">
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:11px;color:${accentC};font-weight:800;padding:3px 16px;border:1px solid ${borderC}35;border-radius:99px;background:${borderC}0a;">
+            ${h.semester||'الفصل الدراسي'} — ${h.year||'1446 - 1447 هـ'}
+          </span>
         </div>
 
         <!-- التوقيعات -->
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid ${borderC}35;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:7px;">
+          <!-- توقيع المرشد -->
           <div style="text-align:center;flex:1;">
-            <div style="font-size:12px;font-weight:800;color:${textC};min-height:17px;">${couName}</div>
-            <div style="border-top:1.5px solid ${borderC}88;width:130px;margin:5px auto 4px;"></div>
-            <div style="font-size:10px;color:${subC};font-weight:700;letter-spacing:.2px;">المرشد الطلابي</div>
+            <div style="font-size:11.5px;font-weight:800;color:${textC};min-height:16px;margin-bottom:5px;">${couName}</div>
+            <div style="position:relative;width:140px;margin:0 auto 3px;">
+              <div style="height:1.5px;background:linear-gradient(90deg,transparent,${borderC}90,transparent);"></div>
+              <div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            </div>
+            <div style="font-size:9.5px;color:${subC};font-weight:700;letter-spacing:.3px;opacity:.85;">المرشد الطلابي</div>
           </div>
-          <div style="text-align:center;flex:0 0 auto;padding:0 14px;">
-            <div style="width:55px;height:55px;border-radius:50%;border:1.5px solid ${borderC}55;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:${borderC};font-weight:700;margin:0 auto 4px;opacity:.38;transform:rotate(-12deg);letter-spacing:.3px;">ختم</div>
-            <div style="font-size:10px;color:${subC};opacity:.65;">${dateStr}</div>
+          <!-- الختم المركزي SVG -->
+          <div style="text-align:center;flex:0 0 auto;padding:0 12px;">
+            ${(function(){
+              const ticks=[0,45,90,135,180,225,270,315].map(a=>'<line x1="35" y1="3.5" x2="35" y2="7" transform="rotate('+a+',35,35)" stroke="'+borderC+'" stroke-width="1" opacity=".25"/>').join('');
+              return '<svg viewBox="0 0 70 70" width="62" height="62" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">'
+                +'<circle cx="35" cy="35" r="32" fill="none" stroke="'+borderC+'" stroke-width="1.2" opacity=".40"/>'
+                +'<circle cx="35" cy="35" r="27" fill="none" stroke="'+borderC+'" stroke-width=".7" opacity=".28" stroke-dasharray="3,2"/>'
+                +'<circle cx="35" cy="35" r="22" fill="'+borderC+'" opacity=".06"/>'
+                +'<g transform="translate(35,35)" fill="'+borderC+'" opacity=".40">'
+                  +'<polygon points="0,-10 2.8,-2.8 10,-2.8 4.5,1.5 6.5,9 0,5 -6.5,9 -4.5,1.5 -10,-2.8 -2.8,-2.8"/>'
+                +'</g>'
+                +'<text x="35" y="56" text-anchor="middle" font-family="Tajawal,sans-serif" font-size="7" fill="'+borderC+'" opacity=".45" font-weight="700">'+dateStr+'</text>'
+                +ticks
+              +'</svg>';
+            })()}
           </div>
+          <!-- توقيع المدير -->
           <div style="text-align:center;flex:1;">
-            <div style="font-size:12px;font-weight:800;color:${textC};min-height:17px;">${dirName}</div>
-            <div style="border-top:1.5px solid ${borderC}88;width:130px;margin:5px auto 4px;"></div>
-            <div style="font-size:10px;color:${subC};font-weight:700;letter-spacing:.2px;">مدير المدرسة</div>
+            <div style="font-size:11.5px;font-weight:800;color:${textC};min-height:16px;margin-bottom:5px;">${dirName}</div>
+            <div style="position:relative;width:140px;margin:0 auto 3px;">
+              <div style="height:1.5px;background:linear-gradient(90deg,transparent,${borderC}90,transparent);"></div>
+              <div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:${borderC};clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.55;"></div>
+            </div>
+            <div style="font-size:9.5px;color:${subC};font-weight:700;letter-spacing:.3px;opacity:.85;">مدير المدرسة</div>
           </div>
         </div>
 
@@ -12054,6 +12492,185 @@ function buildCertHTML(h){
     const extras=`<div style="position:absolute;inset:0;background:linear-gradient(160deg,#fff5fb 0%,#fce7f3 50%,#fff0f9 100%);z-index:0;"></div><div style="position:absolute;top:-38px;right:-38px;width:190px;height:190px;background:radial-gradient(circle,rgba(190,24,93,.10) 0%,transparent 65%);pointer-events:none;z-index:0;"></div><div style="position:absolute;bottom:-32px;left:-32px;width:175px;height:175px;background:radial-gradient(circle,rgba(190,24,93,.08) 0%,transparent 60%);pointer-events:none;z-index:0;"></div><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:180px;background:radial-gradient(ellipse,rgba(251,207,232,.30) 0%,transparent 65%);pointer-events:none;z-index:0;"></div>`;
     return certShell({bg:'transparent',borderC:'#be185d',accentC:'#9d174d',textC:'#3b0020',subC:'#be185d',c1:'#7e0235',c2:'#be185d',extras,logoBgC:'#fff5fb'});
   }
+  // ── القالب 6: الزخرفة الإسلامية — لون تراب / عنبر ──
+  if(tpl===6){
+    // SVG نجمة ثمانية إسلامية متكررة في الخلفية
+    const star8 = (cx,cy,r,c,op)=>`<g transform="translate(${cx},${cy})" opacity="${op}">
+      <polygon points="0,${-r} ${r*.38},${-r*.38} ${r},0 ${r*.38},${r*.38} 0,${r} ${-r*.38},${r*.38} ${-r},0 ${-r*.38},${-r*.38}"
+        fill="none" stroke="${c}" stroke-width="0.8"/>
+      <rect x="${-r*.7}" y="${-r*.7}" width="${r*1.4}" height="${r*1.4}" fill="none" stroke="${c}" stroke-width="0.6" transform="rotate(45)"/>
+    </g>`;
+    // زخرفة هندسية جانبية
+    const islamicSideOrn = (side,c)=>{
+      const x = side==='right'?0:880;
+      const flip = side==='left'?'scale(-1,1) translate(-940,0)':'';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 540" width="72" height="100%"
+        style="position:absolute;top:0;${side}:0;height:100%;pointer-events:none;">
+        <g transform="${flip}" fill="none" stroke="${c}" stroke-width="1.1" opacity="0.42">
+          <line x1="90" y1="0" x2="90" y2="540"/>
+          <line x1="82" y1="0" x2="82" y2="540"/>
+          ${[60,160,260,360,460].map(y=>`
+            <g transform="translate(86,${y})">
+              <polygon points="0,${-14} ${14*.38},${-14*.38} ${14},0 ${14*.38},${14*.38} 0,${14} ${-14*.38},${14*.38} ${-14},0 ${-14*.38},${-14*.38}"
+                fill="${c}20" stroke="${c}" stroke-width="0.9"/>
+              <rect x="${-9}" y="${-9}" width="18" height="18" fill="none" stroke="${c}" stroke-width="0.5" transform="rotate(45)" opacity=".5"/>
+            </g>
+            <path d="M40,${y-35} Q65,${y-18} 82,${y}" stroke="${c}" stroke-width="0.8" fill="none" opacity="0.45"/>
+            <path d="M40,${y+35} Q65,${y+18} 82,${y}" stroke="${c}" stroke-width="0.8" fill="none" opacity="0.45"/>
+          `).join('')}
+          <path d="M0,0 Q40,25 82,60" stroke-width="0.7" opacity="0.3"/>
+          <path d="M0,540 Q40,515 82,480" stroke-width="0.7" opacity="0.3"/>
+        </g></svg>`;
+    };
+    const islamicCorner = (c)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+      <g fill="none" stroke="${c}" stroke-width="1.2" opacity="0.55">
+        <path d="M5,5 L45,5 Q75,5 75,35 L75,75"/>
+        <path d="M12,5 L45,5 Q68,5 68,32 L68,75"/>
+        <polygon points="12,12 12,22 22,12" fill="${c}30"/>
+        <g transform="translate(12,12)">
+          <polygon points="0,${-8} ${8*.38},${-8*.38} ${8},0 ${8*.38},${8*.38} 0,${8} ${-8*.38},${8*.38} ${-8},0 ${-8*.38},${-8*.38}"
+            fill="${c}25" stroke="${c}" stroke-width="0.8"/>
+        </g>
+      </g></svg>`;
+    const extras6 = `
+      <div style="position:absolute;inset:0;background:linear-gradient(160deg,#fdf6ee 0%,#faebd0 50%,#fdf0dc 100%);z-index:0;"></div>
+      <div style="position:absolute;inset:0;opacity:.06;background-image:url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><g fill="none" stroke="#7b3a10" stroke-width="0.7" opacity="0.9"><polygon points="30,4 33.8,16 46,16 36.2,23.4 40,35.6 30,28 20,35.6 23.8,23.4 14,16 26.2,16"/></g></svg>`)}');z-index:0;"></div>
+      ${islamicSideOrn('right','#7b3a10')}
+      ${islamicSideOrn('left','#7b3a10')}
+    `;
+    const sideOrn=(s,c)=>islamicSideOrn(s,c);
+    const crnSVG=(c)=>islamicCorner(c);
+    return certShell({bg:'transparent',borderC:'#7b3a10',accentC:'#5c2a08',textC:'#2c1004',subC:'#8b4513',c1:'#4a1a05',c2:'#a0522d',extras:extras6,logoBgC:'#fdf6ee',sideOrn,crnSVG});
+  }
+
+  // ── القالب 7: الكوفي العريق — فيروزي أزرق ──
+  if(tpl===7){
+    const kuficSideOrn=(side,c)=>{
+      const flip=side==='left'?'scale(-1,1) translate(-100,0)':'';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 540" width="70" height="100%"
+        style="position:absolute;top:0;${side}:0;height:100%;pointer-events:none;">
+        <g transform="${flip}" fill="none" opacity="0.50">
+          <line x1="90" y1="0" x2="90" y2="540" stroke="${c}" stroke-width="1.3"/>
+          <line x1="83" y1="0" x2="83" y2="540" stroke="${c}" stroke-width="0.5" stroke-dasharray="4,4"/>
+          ${[0,60,120,180,240,300,360,420,480,540].map(y=>`
+            <rect x="76" y="${y}" width="14" height="10" rx="1" fill="${c}" opacity="0.18"/>
+            <rect x="78" y="${y+2}" width="10" height="6" rx=".5" fill="${c}" opacity="0.25"/>
+          `).join('')}
+          ${[40,140,240,340,440].map(y=>`
+            <circle cx="87" cy="${y}" r="6" fill="${c}" opacity="0.20" stroke="${c}" stroke-width="0.8"/>
+            <path d="M20,${y-30} Q55,${y-12} 83,${y}" stroke="${c}" stroke-width="0.9" fill="none" opacity="0.35"/>
+            <path d="M20,${y+30} Q55,${y+12} 83,${y}" stroke="${c}" stroke-width="0.9" fill="none" opacity="0.35"/>
+          `).join('')}
+        </g></svg>`;
+    };
+    const kuficCorner=(c)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+      <g fill="none" stroke="${c}" stroke-width="1.3" opacity="0.58">
+        <path d="M5,5 L45,5 L45,15 L15,15 L15,45 L5,45 Z"/>
+        <path d="M5,5 L50,5 Q75,5 75,30 L75,75"/>
+        <rect x="5" y="5" width="14" height="14" fill="${c}" opacity="0.18" rx="1"/>
+        <circle cx="12" cy="12" r="4" fill="${c}" opacity="0.30"/>
+      </g></svg>`;
+    const extras7=`
+      <div style="position:absolute;inset:0;background:linear-gradient(160deg,#f0fdff 0%,#e0f9ff 50%,#f0fdff 100%);z-index:0;"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:10px;background:linear-gradient(90deg,#0e7490,#06b6d4,#0e7490);z-index:6;"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:10px;background:linear-gradient(90deg,#0e7490,#06b6d4,#0e7490);z-index:6;"></div>
+      <div style="position:absolute;top:10px;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#0e749020 0px,#0e749020 8px,transparent 8px,transparent 14px);z-index:5;"></div>
+      <div style="position:absolute;bottom:14px;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#0e749020 0px,#0e749020 8px,transparent 8px,transparent 14px);z-index:5;"></div>
+    `;
+    const sideOrn=(s,c)=>kuficSideOrn(s,c);
+    const crnSVG=(c)=>kuficCorner(c);
+    return certShell({bg:'transparent',borderC:'#0e7490',accentC:'#155e75',textC:'#0c2a33',subC:'#0891b2',c1:'#083344',c2:'#0e7490',extras:extras7,logoBgC:'#f0fdff',sideOrn,crnSVG});
+  }
+
+  // ── القالب 8: الأرابيسك الذهبي — أسود وذهب فاخر ──
+  if(tpl===8){
+    const arabSideOrn=(side,c)=>{
+      const flip=side==='left'?'scale(-1,1) translate(-100,0)':'';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 540" width="72" height="100%"
+        style="position:absolute;top:0;${side}:0;height:100%;pointer-events:none;">
+        <g transform="${flip}" fill="none" stroke="${c}" stroke-width="1.1" opacity="0.55">
+          <line x1="92" y1="0" x2="92" y2="540"/>
+          <line x1="85" y1="0" x2="85" y2="540" stroke-width="0.5" opacity="0.35"/>
+          ${[50,150,250,350,450].map(y=>`
+            <g transform="translate(88,${y})">
+              <polygon points="0,${-12} ${12*.38},${-12*.38} ${12},0 ${12*.38},${12*.38} 0,${12} ${-12*.38},${12*.38} ${-12},0 ${-12*.38},${-12*.38}" fill="${c}30"/>
+              <circle cx="0" cy="0" r="4" fill="${c}50"/>
+            </g>
+            <path d="M15,${y-40} C42,${y-20} 62,${y-10} 85,${y}" stroke="${c}" stroke-width="1" fill="none" opacity="0.40"/>
+            <path d="M15,${y+40} C42,${y+20} 62,${y+10} 85,${y}" stroke="${c}" stroke-width="1" fill="none" opacity="0.40"/>
+            <circle cx="15" cy="${y-40}" r="2.5" fill="${c}" opacity="0.35"/>
+            <circle cx="15" cy="${y+40}" r="2.5" fill="${c}" opacity="0.35"/>
+          `).join('')}
+          <path d="M0,0 Q35,25 85,65" stroke-width="0.8" opacity="0.28"/>
+          <path d="M0,540 Q35,515 85,475" stroke-width="0.8" opacity="0.28"/>
+        </g></svg>`;
+    };
+    const arabCorner=(c)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 85 85" width="85" height="85">
+      <g fill="none" stroke="${c}" stroke-width="1.3" opacity="0.62">
+        <path d="M6,6 L50,6 Q79,6 79,35 L79,79"/>
+        <path d="M14,6 L50,6 Q71,6 71,30 L71,79"/>
+        <polygon points="14,14 14,26 26,14" fill="${c}28"/>
+        <g transform="translate(14,14)">
+          <polygon points="0,-11 ${11*.38},-${11*.38} 11,0 ${11*.38},${11*.38} 0,11 -${11*.38},${11*.38} -11,0 -${11*.38},-${11*.38}"
+            fill="${c}22" stroke="${c}" stroke-width="0.9"/>
+          <circle cx="0" cy="0" r="3" fill="${c}60"/>
+        </g>
+      </g></svg>`;
+    const extras8=`
+      <div style="position:absolute;inset:0;background:linear-gradient(160deg,#0d0d0d 0%,#1a1400 50%,#0a0800 100%);z-index:0;"></div>
+      <div style="position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:450px;height:300px;background:radial-gradient(ellipse,rgba(212,160,23,.16) 0%,transparent 65%);pointer-events:none;z-index:0;"></div>
+      <div style="position:absolute;bottom:-40px;right:15%;width:220px;height:180px;background:radial-gradient(ellipse,rgba(212,160,23,.10) 0%,transparent 65%);pointer-events:none;z-index:0;"></div>
+      <div style="position:absolute;inset:0;opacity:.04;background-image:url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><g fill="none" stroke="#d4a017" stroke-width="0.6"><polygon points="25,3 28,13 38,13 30,19 33,29 25,23 17,29 20,19 12,13 22,13"/></g></svg>`)}');z-index:0;"></div>
+    `;
+    const sideOrn=(s,c)=>arabSideOrn(s,c);
+    const crnSVG=(c)=>arabCorner(c);
+    return certShell({bg:'transparent',borderC:'#d4a017',accentC:'#f5c842',textC:'#f5e6c0',subC:'#c8952a',c1:'#f0d060',c2:'#d4a017',extras:extras8,logoBgC:'#0d0d0d',sideOrn,crnSVG});
+  }
+
+  // ── القالب 9: الزمرد الأندلسي — أخضر زمردي عميق ──
+  if(tpl===9){
+    const andSideOrn=(side,c)=>{
+      const flip=side==='left'?'scale(-1,1) translate(-100,0)':'';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 540" width="70" height="100%"
+        style="position:absolute;top:0;${side}:0;height:100%;pointer-events:none;">
+        <g transform="${flip}" fill="none" stroke="${c}" stroke-width="1.0" opacity="0.48">
+          <line x1="90" y1="0" x2="90" y2="540"/>
+          <line x1="84" y1="0" x2="84" y2="540" stroke-width="0.5" opacity="0.35"/>
+          ${[50,150,250,350,450].map(y=>`
+            <g transform="translate(87,${y})">
+              <polygon points="0,-11 9.53,-5.5 9.53,5.5 0,11 -9.53,5.5 -9.53,-5.5" fill="${c}22" stroke="${c}" stroke-width="0.8"/>
+              <polygon points="0,-11 9.53,-5.5 9.53,5.5 0,11 -9.53,5.5 -9.53,-5.5" fill="none" stroke="${c}" stroke-width="0.8" transform="rotate(30)"/>
+              <circle cx="0" cy="0" r="3.5" fill="${c}45"/>
+            </g>
+            <path d="M22,${y-38} Q55,${y-16} 84,${y}" stroke="${c}" stroke-width="0.85" fill="none" opacity="0.38"/>
+            <path d="M22,${y+38} Q55,${y+16} 84,${y}" stroke="${c}" stroke-width="0.85" fill="none" opacity="0.38"/>
+          `).join('')}
+          <path d="M0,0 Q38,28 84,68" stroke-width="0.7" opacity="0.25"/>
+          <path d="M0,540 Q38,512 84,472" stroke-width="0.7" opacity="0.25"/>
+        </g></svg>`;
+    };
+    const andCorner=(c)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+      <g fill="none" stroke="${c}" stroke-width="1.2" opacity="0.58">
+        <path d="M6,6 L46,6 Q74,6 74,34 L74,74"/>
+        <path d="M13,6 L46,6 Q67,6 67,30 L67,74"/>
+        <polygon points="13,13 13,24 24,13" fill="${c}28"/>
+        <g transform="translate(13,13)">
+          <polygon points="0,-9 7.79,-4.5 7.79,4.5 0,9 -7.79,4.5 -7.79,-4.5" fill="${c}20" stroke="${c}" stroke-width="0.9"/>
+          <polygon points="0,-9 7.79,-4.5 7.79,4.5 0,9 -7.79,4.5 -7.79,-4.5" fill="none" stroke="${c}" stroke-width="0.7" transform="rotate(30)"/>
+        </g>
+      </g></svg>`;
+    const extras9=`
+      <div style="position:absolute;inset:0;background:linear-gradient(160deg,#f0fdf9 0%,#d1fae5 45%,#ecfdf5 100%);z-index:0;"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#065f46,#10b981,#059669,#10b981,#065f46);z-index:6;"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#065f46,#10b981,#065f46);z-index:6;"></div>
+      <div style="position:absolute;top:-50px;right:-30px;width:220px;height:220px;background:radial-gradient(circle,rgba(16,185,129,.10) 0%,transparent 65%);pointer-events:none;z-index:0;"></div>
+      <div style="position:absolute;bottom:-40px;left:-20px;width:190px;height:190px;background:radial-gradient(circle,rgba(6,95,70,.08) 0%,transparent 60%);pointer-events:none;z-index:0;"></div>
+    `;
+    const sideOrn=(s,c)=>andSideOrn(s,c);
+    const crnSVG=(c)=>andCorner(c);
+    return certShell({bg:'transparent',borderC:'#065f46',accentC:'#064e3b',textC:'#022c22',subC:'#047857',c1:'#022c22',c2:'#059669',extras:extras9,logoBgC:'#f0fdf9',sideOrn,crnSVG});
+  }
+
   // fallback
   return certShell({bg:'#ffffff',borderC:'#2e7d56',accentC:'#1a5c3a',textC:'#0a2018',subC:'#4a7a5a',c1:'#1a3a22',c2:'#0d7a42',extras:'',logoBgC:'#ffffff'});
 }
@@ -12109,43 +12726,123 @@ function printCertificate(){
   const certInner = frame.querySelector('.cert-unified');
   if(!certInner){ toast('خطأ في الشهادة','error'); return; }
 
-  // استخرج لون الإطار من الـ border الحالي
   const borderColor = certInner.style.borderColor || '#2e8b6e';
 
-  const win = window.open('','_blank','width=1050,height=760');
+  // ══ نسخ الـ computed styles (الخلفية التدرجية وغيرها) ══
+  const bgStyle = certInner.style.background || certInner.style.backgroundColor || 'white';
+
+  const win = window.open('','_blank','width=1200,height=850');
   if(!win){ toast('السماح بالنوافذ المنبثقة لتشغيل الطباعة','error'); return; }
-  win.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+
+  win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
   <meta charset="UTF-8">
   <title>شهادة تكريم — مدارس البشرى</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    @page{size:A4 landscape;margin:0;}
-    html,body{width:297mm;height:210mm;overflow:hidden;background:white;}
-    body{display:flex;align-items:center;justify-content:center;}
-    .cert-unified{
-      width:271mm; height:192mm;
-      position:relative; overflow:hidden;
-      border-radius:5px;
-      direction:rtl;
-      display:flex; flex-direction:column;
-      font-family:'Tajawal','Arial',sans-serif;
-    }
-    img{max-width:100%;height:auto;}
-    svg text{font-family:'Tajawal','Arial',sans-serif!important;}
-  <\/style>
-  <\/head><body>
-  <div class="cert-unified" style="border:2.5px solid ${borderColor};">${certInner.innerHTML}</div>
-  
+    /* ══ إعادة ضبط كاملة ══ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    window.onload = function(){
-      if(document.fonts && document.fonts.ready){
-        document.fonts.ready.then(function(){ setTimeout(function(){ window.print(); },500); });
-      } else { setTimeout(function(){ window.print(); },1400); }
-    };
+    /* ══ مقاس الصفحة: A4 أفقي بدون هوامش ══ */
+    @page {
+      size: A4 landscape;
+      margin: 0mm;
+    }
+
+    html {
+      width: 297mm;
+      height: 210mm;
+    }
+
+    body {
+      width: 297mm;
+      height: 210mm;
+      overflow: hidden;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Tajawal', 'Arial', sans-serif;
+    }
+
+    /* ══ الشهادة نفسها — مقاسات دقيقة ══ */
+    .cert-unified {
+      width: 271mm;
+      height: 192mm;
+      position: relative;
+      overflow: hidden;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Tajawal', 'Arial', sans-serif;
+      /* نضمن أن الـ font-size الأساسي يتناسب مع mm */
+      font-size: 13px;
+    }
+
+    /* ══ ضمان ظهور الصور ══ */
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* ══ الـ SVG يحافظ على أبعاده ══ */
+    svg { overflow: visible; }
+    svg text { font-family: 'Tajawal', 'Arial', sans-serif !important; }
+
+    /* ══ زر الطباعة — يختفي عند الطباعة ══ */
+    .print-btn-bar {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 9999;
+    }
+    .btn-do-print {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #1565c0, #1976d2);
+      color: white; border: none; border-radius: 12px;
+      font-family: 'Tajawal', sans-serif; font-size: 15px; font-weight: 800;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(21,101,192,.40);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-do-print:hover { background: #0d47a1; }
+    .btn-do-close {
+      padding: 12px 24px;
+      background: #f1f5f9; color: #475569;
+      border: 1.5px solid #e2e8f0; border-radius: 12px;
+      font-family: 'Tajawal', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer;
+    }
+    @media print {
+      .print-btn-bar { display: none !important; }
+      html, body { background: white !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ الشهادة ══ -->
+  <div class="cert-unified" style="border: 2.5px solid ${borderColor}; background: ${bgStyle};">
+    ${certInner.innerHTML}
+  </div>
+
+  <!-- ══ أزرار الطباعة (تختفي عند الطباعة) ══ -->
+  <div class="print-btn-bar">
+    <button class="btn-do-print" onclick="window.print()">
+      🖨️ طباعة / حفظ PDF
+    </button>
+    <button class="btn-do-close" onclick="window.close()">✕ إغلاق</button>
+  </div>
+
+  <script>
+    // انتظار تحميل الخطوط ثم الطباعة التلقائية
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(function(){
+        setTimeout(function(){ window.print(); }, 600);
+      });
+    } else {
+      setTimeout(function(){ window.print(); }, 1600);
+    }
     window.onafterprint = function(){ window.close(); };
   <\/script>
-  </body></html>`);
+
+</body>
+</html>`);
   win.document.close();
 }
 
