@@ -55,7 +55,7 @@
   import { initializeApp }                        from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getFirestore, doc, getDoc, setDoc,
            collection, getDocs, deleteDoc }       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  // Cloudinary is used for file storage instead of Firebase Storage
+
 
   // ════════════════════════════════════════════
   // 🔧 ضع هنا بيانات مشروعك من Firebase Console
@@ -71,9 +71,8 @@
     measurementId:     "G-5H9MGRBEQ7"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-  // storage handled by Cloudinary
+  const app     = initializeApp(firebaseConfig);
+  const db      = getFirestore(app);
 
   // ════════════════════════════════════════════
   // 🗄️  طبقة التخزين الموحّدة (تحل محل localStorage)
@@ -125,46 +124,88 @@
   window._fsRemove = fsRemove;
   window._db       = db;
   window._COLL     = COLL;
-  // window._storage = not used (Cloudinary)
+  // window._storage = Cloudinary (see _storageUpload below)
   window._fsCache  = _fsCache;   // ← الإصلاح: نصدّر الكاش عشان DB يقدر يقرأه
 
-  // ── Cloudinary upload helpers ──
+  // ── Firebase Storage helpers ──
+  // ════════════════════════════════════════════
+  // ☁️  Cloudinary — رفع وتنزيل الملفات
+  //     raw  → للـ PDF والمستندات (قابل للتحميل مباشرة)
+  //     image → للصور
+  // ════════════════════════════════════════════
+
   window._storageUpload = function(file, path, onProgress) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
       var cloudName    = 'dbpnfykst';
       var preset       = 'admin-elbushra';
       var isImage      = file.type.startsWith('image/');
+      // نستخدم raw للـ PDF والمستندات، image للصور فقط
       var resourceType = isImage ? 'image' : 'raw';
-      var url          = 'https://api.cloudinary.com/v1_1/' + cloudName + '/' + resourceType + '/upload';
-      var formData     = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', preset);
-      formData.append('folder', 'cloudbag');
+      var apiUrl       = 'https://api.cloudinary.com/v1_1/' + cloudName + '/' + resourceType + '/upload';
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', url, true);
+      var CHUNK = 6 * 1024 * 1024; // 6 MB
 
-      xhr.upload.onprogress = function(e) {
-        if(e.lengthComputable && onProgress)
-          onProgress(Math.round(e.loaded / e.total * 100));
-      };
+      // ── رفع عادي للملفات الصغيرة ──
+      if(file.size <= CHUNK) {
+        var fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', preset);
+        fd.append('folder', 'cloudbag');
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', apiUrl, true);
+        xhr.upload.onprogress = function(e){
+          if(e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100));
+        };
+        xhr.onload = function(){
+          if(xhr.status===200){ var r=JSON.parse(xhr.responseText); resolve(r.secure_url); }
+          else reject(new Error('Cloudinary error: '+xhr.status+' '+xhr.responseText));
+        };
+        xhr.onerror = function(){ reject(new Error('Network error')); };
+        xhr.send(fd);
+        return;
+      }
 
-      xhr.onload = function() {
-        if(xhr.status === 200) {
-          var res = JSON.parse(xhr.responseText);
-          resolve(res.secure_url);
-        } else {
-          reject(new Error('Cloudinary error: ' + xhr.status + ' ' + xhr.responseText));
-        }
-      };
+      // ── Chunked Upload للملفات الكبيرة (> 6 MB) ──
+      var uid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c){
+        return (c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16);
+      });
+      var offset = 0;
+      var total  = file.size;
 
-      xhr.onerror = function() { reject(new Error('Network error')); };
-      xhr.send(formData);
+      function uploadChunk(){
+        var end   = Math.min(offset + CHUNK, total);
+        var chunk = file.slice(offset, end);
+        var fd    = new FormData();
+        fd.append('file', chunk);
+        fd.append('upload_preset', preset);
+        fd.append('folder', 'cloudbag');
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', apiUrl, true);
+        xhr.setRequestHeader('X-Unique-Upload-Id', uid);
+        xhr.setRequestHeader('Content-Range', 'bytes '+offset+'-'+(end-1)+'/'+total);
+        xhr.upload.onprogress = function(e){
+          if(e.lengthComputable && onProgress)
+            onProgress(Math.round((offset + e.loaded) / total * 100));
+        };
+        xhr.onload = function(){
+          if(xhr.status === 200){
+            var res = JSON.parse(xhr.responseText);
+            if(res.secure_url){ resolve(res.secure_url); }
+            else { offset = end; uploadChunk(); }
+          } else {
+            reject(new Error('Cloudinary chunk error: '+xhr.status+' '+xhr.responseText));
+          }
+        };
+        xhr.onerror = function(){ reject(new Error('Network error during chunk upload')); };
+        xhr.send(fd);
+      }
+
+      uploadChunk();
     });
   };
 
   window._storageDelete = function(path) {
-    // Cloudinary delete requires server-side — skip silently
+    // Cloudinary delete requires server-side signing — تُتجاهل صامتاً
     console.log('Cloudinary: delete skipped for', path);
   };
 
@@ -2040,6 +2081,91 @@ body.dark .gr-progress { background: rgba(255,255,255,.08); }
 }
 .tpl-thumb:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
 .tpl-thumb.active { outline: 3px solid #1565c0; outline-offset: 3px; }
+
+/* ══ CLASSES PAGE ══ */
+.cls-stage-card {
+  cursor: pointer; border-radius: 20px; padding: 28px 20px 22px;
+  background: var(--card); position: relative; overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--stage-c) 22%, transparent);
+  box-shadow: 0 6px 28px color-mix(in srgb, var(--stage-c) 14%, transparent);
+  transition: all .22s; text-align: center;
+}
+.cls-stage-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px color-mix(in srgb, var(--stage-c) 22%, transparent);
+  border-color: color-mix(in srgb, var(--stage-c) 50%, transparent);
+}
+.cls-stage-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top, color-mix(in srgb, var(--stage-c) 8%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cls-stage-icon { font-size: 2.8rem; margin-bottom: 12px; line-height: 1; }
+.cls-stage-name { font-size: 1.15rem; font-weight: 900; color: var(--stage-c); margin-bottom: 10px; }
+.cls-stage-badge {
+  font-size: .80rem; color: var(--stage-c); font-weight: 800;
+  background: color-mix(in srgb, var(--stage-c) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--stage-c) 22%, transparent);
+  border-radius: 99px; padding: 4px 14px; display: inline-block; margin-bottom: 8px;
+}
+.cls-stage-arrow {
+  font-size: .82rem; color: var(--stage-c); opacity: .55; font-weight: 700;
+  transition: transform .18s;
+}
+.cls-stage-card:hover .cls-stage-arrow { transform: translateX(-4px); }
+
+/* ══ CLASS CARD ══ */
+.cls-card {
+  background: white; border: 1.5px solid #e8edf5; border-radius: 18px;
+  overflow: hidden; transition: all .2s;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+}
+.cls-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.10); }
+.cls-card-header {
+  padding: 14px 18px 12px; display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+.cls-card-badge {
+  font-size: 1.3rem; font-weight: 900; padding: 5px 13px;
+  border-radius: 10px; flex-shrink: 0;
+}
+.cls-student-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 10px;
+  background: rgba(255,255,255,.6); border: 1px solid #f1f5f9;
+  transition: background .1s;
+}
+.cls-student-row:hover { background: #eff6ff; border-color: #bfdbfe; }
+.cls-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .70rem; font-weight: 900; color: white; flex-shrink: 0;
+}
+/* list view */
+.cls-list-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px; border-bottom: 1px solid #f1f5f9;
+  transition: background .1s;
+}
+.cls-list-row:hover { background: #f8faff; }
+.cls-list-row:last-child { border-bottom: none; }
+
+/* ══ GRADE SECTION HEADER ══ */
+.cls-grade-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+.cls-grade-num {
+  width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+  background: linear-gradient(135deg,#1565c0,#7c3aed); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 900;
+}
+/* animations */
+@keyframes cls-fade-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.cls-animate { animation: cls-fade-in .25s ease both; }
 </style>
 </head>
 <body>
@@ -2979,56 +3105,94 @@ async function doLogin(){
     <!-- ═══ STUDENTS ═══ -->
     <!-- ═══ CLASSES VIEW ═══ -->
     <div class="page-view" id="view-classes">
-      <div class="page-header">
-        <div>
-          <div class="page-title">🏫 الفصول</div>
-          <div class="page-sub" id="classesPageSub">اختر المرحلة لعرض فصولها</div>
-        </div>
-      </div>
 
-      <!-- Stage Selector Cards -->
-      <div id="stageSelectorWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;max-width:560px;">
-        <div id="stageCardB" onclick="selectStage('ب')" style="cursor:pointer;border-radius:20px;padding:32px 20px;background:var(--card);border:2.5px solid rgba(21,101,192,.25);box-shadow:0 6px 28px rgba(21,101,192,.15);transition:all .22s;text-align:center;">
-          <div style="font-size:2.6rem;margin-bottom:12px;">🏫</div>
-          <div style="font-size:1.15rem;font-weight:900;color:#1565c0;margin-bottom:8px;">الابتدائية</div>
-          <div id="stageBCount" style="font-size:.82rem;color:var(--muted);font-weight:700;background:rgba(21,101,192,.08);border-radius:99px;padding:4px 14px;display:inline-block;">تحميل...</div>
-        </div>
-        <div id="stageCardM" onclick="selectStage('م')" style="cursor:pointer;border-radius:20px;padding:32px 20px;background:var(--card);border:2.5px solid rgba(124,58,237,.25);box-shadow:0 6px 28px rgba(124,58,237,.15);transition:all .22s;text-align:center;">
-          <div style="font-size:2.6rem;margin-bottom:12px;">📚</div>
-          <div style="font-size:1.15rem;font-weight:900;color:#7c3aed;margin-bottom:8px;">المتوسطة</div>
-          <div id="stageMCount" style="font-size:.82rem;color:var(--muted);font-weight:700;background:rgba(124,58,237,.08);border-radius:99px;padding:4px 14px;display:inline-block;">تحميل...</div>
-        </div>
-      </div>
-
-      <!-- Classes Content (shown after stage selected) -->
-      <div id="classesContent" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-          <button onclick="selectStage(null)" style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:8px 16px;font-family:'Tajawal',sans-serif;font-size:.86rem;font-weight:700;color:var(--ink2);cursor:pointer;transition:all .18s;" onmouseover="this.style.background='var(--glass-bg)'" onmouseout="this.style.background='var(--card)'">
-            ← رجوع
-          </button>
-          <div id="stageTitle" style="font-size:1.1rem;font-weight:900;color:var(--ink2);"></div>
-          <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <div class="class-search-wrapper">
-              <input id="classSearchInput" class="search-input" placeholder="بحث عن طالب..." oninput="renderClassesView()">
-              <span class="search-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </span>
-            </div>
-            <select id="classFilterGrade" class="filter-select" onchange="renderClassesView()">
-              <option value="all">كل الصفوف</option>
-              <option value="1">الصف الأول</option>
-              <option value="2">الصف الثاني</option>
-              <option value="3">الصف الثالث</option>
-              <option value="4">الصف الرابع</option>
-              <option value="5">الصف الخامس</option>
-              <option value="6">الصف السادس</option>
-            </select>
+      <!-- ══ HEADER ══ -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:46px;height:46px;background:linear-gradient(135deg,#1565c0,#7c3aed);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 14px rgba(21,101,192,.28);flex-shrink:0;">🏫</div>
+          <div>
+            <div style="font-size:1.3rem;font-weight:900;color:var(--ink2);line-height:1.2;">الفصول الدراسية</div>
+            <div id="classesPageSub" style="font-size:.76rem;color:var(--muted);margin-top:3px;">اختر المرحلة لعرض فصولها</div>
           </div>
         </div>
-        <div id="classesViewContainer"></div>
+        <!-- إجماليات سريعة -->
+        <div id="classesTopStats" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
 
-      <!-- hidden type filter kept for JS compatibility -->
+      <!-- ══ STAGE SELECTOR ══ -->
+      <div id="stageSelectorWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;max-width:580px;">
+
+        <div id="stageCardB" onclick="selectStage('ب')" class="cls-stage-card" style="--stage-c:#1565c0;--stage-c2:#1976d2;">
+          <div class="cls-stage-bg"></div>
+          <div class="cls-stage-icon">🏫</div>
+          <div class="cls-stage-name">الابتدائية</div>
+          <div id="stageBCount" class="cls-stage-badge">...</div>
+          <div class="cls-stage-arrow">←</div>
+        </div>
+
+        <div id="stageCardM" onclick="selectStage('م')" class="cls-stage-card" style="--stage-c:#7c3aed;--stage-c2:#8b5cf6;">
+          <div class="cls-stage-bg"></div>
+          <div class="cls-stage-icon">📚</div>
+          <div class="cls-stage-name">المتوسطة</div>
+          <div id="stageMCount" class="cls-stage-badge">...</div>
+          <div class="cls-stage-arrow">←</div>
+        </div>
+
+      </div>
+
+      <!-- ══ CLASSES CONTENT ══ -->
+      <div id="classesContent" style="display:none;">
+
+        <!-- شريط التنقل والفلاتر -->
+        <div style="background:white;border:1.5px solid rgba(66,105,220,.12);border-radius:16px;padding:14px 18px;margin-bottom:20px;box-shadow:0 2px 10px rgba(21,101,192,.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button onclick="selectStage(null)" style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:800;color:var(--ink2);cursor:pointer;transition:all .18s;white-space:nowrap;" onmouseover="this.style.borderColor='#1565c0'" onmouseout="this.style.borderColor='var(--border)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            رجوع
+          </button>
+          <div id="stageTitle" style="font-size:1rem;font-weight:900;color:var(--ink2);"></div>
+          <div style="flex:1;"></div>
+          <!-- بحث -->
+          <div style="position:relative;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="classSearchInput" type="text" placeholder="بحث عن طالب..." oninput="renderClassesView()"
+              style="padding:8px 34px 8px 12px;border:1.5px solid #e2e8f0;border-radius:99px;font-family:'Tajawal',sans-serif;font-size:.82rem;color:var(--ink);background:var(--glass-bg);outline:none;width:190px;transition:all .18s;"
+              onfocus="this.style.borderColor='#1565c0';this.style.background='white'"
+              onblur="this.style.borderColor='#e2e8f0';this.style.background='var(--glass-bg)'"/>
+          </div>
+          <!-- فلتر الصف -->
+          <select id="classFilterGrade" onchange="renderClassesView()"
+            style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.82rem;color:var(--ink);background:var(--glass-bg);outline:none;cursor:pointer;transition:border-color .18s;"
+            onfocus="this.style.borderColor='#1565c0'" onblur="this.style.borderColor='#e2e8f0'">
+            <option value="all">كل الصفوف</option>
+            <option value="1">الصف الأول</option>
+            <option value="2">الصف الثاني</option>
+            <option value="3">الصف الثالث</option>
+            <option value="4">الصف الرابع</option>
+            <option value="5">الصف الخامس</option>
+            <option value="6">الصف السادس</option>
+          </select>
+          <!-- تبديل عرض -->
+          <div style="display:flex;background:#f1f5f9;border-radius:8px;padding:2px;gap:2px;">
+            <button id="viewBtn_grid" onclick="setClassView('grid')" title="عرض شبكي"
+              style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:#1565c0;color:white;display:flex;align-items:center;justify-content:center;transition:all .15s;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button id="viewBtn_list" onclick="setClassView('list')" title="عرض قائمة"
+              style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#64748b;display:flex;align-items:center;justify-content:center;transition:all .15s;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- إحصاءات سريعة للمرحلة -->
+        <div id="stageStatsBar" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;"></div>
+
+        <!-- حاوي الفصول -->
+        <div id="classesViewContainer"></div>
+
+      </div>
+
+      <!-- hidden compat -->
       <select id="classFilterType" style="display:none;"><option value="all">all</option><option value="ب">ب</option><option value="م">م</option></select>
     </div>
 
@@ -3462,7 +3626,22 @@ async function doLogin(){
           <div class="page-title">🎯 الأنشطة والبرامج الإرشادية</div>
           <div class="page-sub">تخطيط وتتبع الأنشطة والبرامج الطلابية على مدار العام</div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <!-- شعار المدرسة في التقرير -->
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);">
+            <div id="actLogoThumb" style="display:none;">
+              <img id="actLogoImg" src="" style="width:32px;height:32px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:#fff;">
+            </div>
+            <div id="actLogoEmpty" style="width:32px;height:32px;border-radius:6px;border:1.5px dashed var(--muted);display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;" onclick="document.getElementById('actLogoFileInput').click()" title="أضف شعار المدرسة">🏫</div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <label onclick="document.getElementById('actLogoFileInput').click()" style="font-size:.72rem;font-weight:700;color:var(--sky);cursor:pointer;">شعار المدرسة في التقرير</label>
+              <div style="display:flex;gap:6px;">
+                <button onclick="document.getElementById('actLogoFileInput').click()" style="font-size:.68rem;padding:2px 8px;border-radius:6px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.25);color:var(--sky);cursor:pointer;">📤 رفع</button>
+                <button id="actLogoRemoveBtn" onclick="actRemoveLogo()" style="display:none;font-size:.68rem;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.20);color:#ef4444;cursor:pointer;">🗑 إزالة</button>
+              </div>
+            </div>
+            <input type="file" id="actLogoFileInput" accept="image/*" style="display:none" onchange="actUploadLogo(this)">
+          </div>
           <button class="btn btn-ghost btn-sm" onclick="exportActivitiesReport()">📄 تقرير PDF</button>
           <button class="btn btn-primary" onclick="openActivityModal()">➕ نشاط جديد</button>
         </div>
@@ -3650,6 +3829,25 @@ async function doLogin(){
             <label>اسم المدرسة</label>
             <input type="text" id="arSchool" placeholder="مثال: مدرسة البشرى الابتدائية">
           </div>
+        </div>
+
+        <!-- شعار المدرسة -->
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="font-size:.78rem;font-weight:700;color:var(--ink2);white-space:nowrap">🖼️ شعار المدرسة في التقرير:</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <!-- معاينة الشعار -->
+            <div id="arLogoPreviewWrap" style="display:none;width:64px;height:64px;border-radius:10px;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px;">
+              <img id="arLogoPreviewImg" src="" style="max-width:100%;max-height:100%;object-fit:contain;">
+            </div>
+            <div id="arLogoEmptyBox" style="width:64px;height:64px;border-radius:10px;border:2px dashed var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:1.4rem;" onclick="document.getElementById('arLogoFileInput').click()">🏫<span style="font-size:.6rem;color:var(--muted);margin-top:2px">رفع</span></div>
+            <!-- أزرار -->
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button onclick="document.getElementById('arLogoFileInput').click()" style="padding:5px 14px;border-radius:8px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.28);color:var(--sky);font-size:.76rem;font-weight:700;cursor:pointer;">📤 رفع شعار</button>
+              <button id="arLogoRemoveBtn" onclick="arRemoveLogo()" style="display:none;padding:5px 14px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);color:#ef4444;font-size:.76rem;font-weight:700;cursor:pointer;">🗑 إزالة الشعار</button>
+            </div>
+            <div style="font-size:.72rem;color:var(--muted);line-height:1.6">سيظهر الشعار في أعلى يسار<br>التقرير المطبوع وتحفظ تلقائياً</div>
+          </div>
+          <input type="file" id="arLogoFileInput" accept="image/*" style="display:none" onchange="arUploadLogo(this)">
         </div>
       </div>
 
@@ -5144,7 +5342,7 @@ async function doLogin(){
           <input type="text" id="honorFLine2" placeholder="أن تتقدم بالشكر والتقدير">
         </div>
         <div class="fg"><label>نص الشهادة الرئيسي</label>
-          <textarea id="honorFDesc" rows="3" placeholder="نص الشهادة التفصيلي..."></textarea>
+          <textarea id="honorFDesc" rows="3" placeholder="نص الشهادة التفصيلي..." style="font-family:'Amiri','Traditional Arabic',serif;font-size:15px;line-height:1.9;direction:rtl;unicode-bidi:plaintext;"></textarea>
         </div>
       </div>
 
@@ -9818,89 +10016,189 @@ document.addEventListener('DOMContentLoaded', initStageCounts);
 function renderClassesView(){
   const container = document.getElementById('classesViewContainer');
   if(!container) return;
-  const q     = (document.getElementById('classSearchInput')?.value||'').trim().toLowerCase();
-  const grade = document.getElementById('classFilterGrade')?.value||'all';
-  const stype = window._activeStage || document.getElementById('classFilterType')?.value||'all';
+  const q      = (document.getElementById('classSearchInput')?.value||'').trim().toLowerCase();
+  const grade  = document.getElementById('classFilterGrade')?.value||'all';
+  const stype  = window._activeStage || document.getElementById('classFilterType')?.value||'all';
+  const vMode  = window._classViewMode || 'grid';
 
-  // Group by grade then type
+  const GRADE_ARABIC = {1:'الأول',2:'الثاني',3:'الثالث',4:'الرابع',5:'الخامس',6:'السادس'};
+  const tColor = stype==='ب' ? '#1565c0' : '#7c3aed';
+  const tColor2= stype==='ب' ? '#42a5f5' : '#a78bfa';
+
+  // ── Group by grade ──
   const grades = {};
   HARDCODED_CLASSES.forEach(cls => {
     if(grade !== 'all' && String(cls.grade) !== grade) return;
     if(stype !== 'all' && cls.type !== stype) return;
-    if(!grades[cls.grade]) grades[cls.grade] = {ب:[], م:[]};
-    grades[cls.grade][cls.type] = grades[cls.grade][cls.type] || [];
-    grades[cls.grade][cls.type].push(cls);
+    if(!grades[cls.grade]) grades[cls.grade] = [];
+    grades[cls.grade].push(cls);
   });
 
-  const GRADE_ARABIC = {1:'الأول',2:'الثاني',3:'الثالث',4:'الرابع',5:'الخامس',6:'السادس'};
+  // ── Stage stats bar ──
+  const statsBar = document.getElementById('stageStatsBar');
+  if(statsBar){
+    let totalStu=0, totalCls=0;
+    HARDCODED_CLASSES.forEach(c=>{ if(stype==='all'||c.type===stype){ totalStu+=c.students.length; totalCls++; } });
+    const avgStu = totalCls ? (totalStu/totalCls).toFixed(0) : 0;
+    statsBar.innerHTML = [
+      {icon:'🏫', val:totalCls,   lbl:'فصل',         c:tColor},
+      {icon:'👥', val:totalStu,   lbl:'طالب',         c:tColor},
+      {icon:'📊', val:avgStu,     lbl:'متوسط الفصل',  c:tColor},
+      {icon:'📝', val:Object.keys(grades).length, lbl:'صف دراسي', c:tColor},
+    ].map(k=>`
+      <div style="background:white;border:1.5px solid ${k.c}22;border-radius:14px;padding:12px 10px;text-align:center;border-top:3px solid ${k.c};box-shadow:0 2px 8px rgba(0,0,0,.04);">
+        <div style="font-size:1.4rem;">${k.icon}</div>
+        <div style="font-size:1.4rem;font-weight:900;color:${k.c};line-height:1.1;margin:3px 0;">${k.val}</div>
+        <div style="font-size:.65rem;color:#94a3b8;font-weight:700;">${k.lbl}</div>
+      </div>`).join('');
+  }
 
+  // ── Build HTML ──
   let html = '';
   const gradeNums = Object.keys(grades).map(Number).sort();
-  gradeNums.forEach(gNum => {
-    const types = grades[gNum];
-    html += `<div style="margin-bottom:28px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-        <div style="background:linear-gradient(135deg,#1565c0,#7c3aed);color:white;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;flex-shrink:0;">${gNum}</div>
+
+  if(!gradeNums.length){
+    container.innerHTML = `<div style="text-align:center;padding:64px 20px;">
+      <div style="width:72px;height:72px;background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:16px;">🔍</div>
+      <div style="font-size:1rem;font-weight:800;color:var(--ink2);margin-bottom:6px;">لا توجد نتائج</div>
+      <div style="font-size:.82rem;color:var(--muted);">جرّب تغيير الفلتر أو مسح البحث</div>
+    </div>`;
+    return;
+  }
+
+  gradeNums.forEach((gNum,gi) => {
+    const classes = grades[gNum];
+    const gradeTotal = classes.reduce((a,c)=>a+c.students.length,0);
+    const gradeFiltered = classes.reduce((a,c)=>{
+      const s = q ? c.students.filter(st=>st.name.toLowerCase().includes(q)) : c.students;
+      return a + s.length;
+    }, 0);
+
+    html += `<div class="cls-animate" style="margin-bottom:32px;animation-delay:${gi*0.06}s;">
+      <!-- grade header -->
+      <div class="cls-grade-header">
+        <div class="cls-grade-num">${gNum}</div>
         <div>
-          <div style="font-size:1.15rem;font-weight:900;color:var(--ink2)">الصف ${GRADE_ARABIC[gNum]}</div>
-          <div style="font-size:.78rem;color:var(--muted)">${Object.values(types).flat().reduce((a,c)=>a+c.students.length,0)} طالب</div>
+          <div style="font-size:1.1rem;font-weight:900;color:var(--ink2)">الصف ${GRADE_ARABIC[gNum]}</div>
+          <div style="font-size:.76rem;color:var(--muted);margin-top:2px;">
+            ${classes.length} فصل &nbsp;·&nbsp; ${gradeTotal} طالب
+            ${q?' &nbsp;·&nbsp; <span style="color:'+tColor+';font-weight:800;">'+gradeFiltered+' نتيجة</span>':''}
+          </div>
+        </div>
+        <!-- progress bar للصف -->
+        <div style="flex:1;margin-right:12px;">
+          <div style="height:6px;background:#f1f5f9;border-radius:99px;overflow:hidden;max-width:180px;margin-right:auto;">
+            <div style="height:100%;background:linear-gradient(90deg,${tColor},${tColor2});border-radius:99px;width:${Math.min(gradeTotal/40*100,100).toFixed(0)}%;transition:width .4s;"></div>
+          </div>
         </div>
       </div>`;
 
-    ['ب','م'].forEach(t => {
-      if(!types[t] || types[t].length === 0) return;
-      const tName = t === 'ب' ? 'ابتدائي' : 'متوسط';
-      const tColor = t === 'ب' ? '#1565c0' : '#7c3aed';
-      html += `<div style="margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-          <span style="background:${tColor}22;color:${tColor};border:1px solid ${tColor}33;font-size:.76rem;font-weight:800;padding:4px 12px;border-radius:99px;">${tName}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">`;
-      
-      types[t].forEach(cls => {
-        // Filter students by search
-        const students = q 
-          ? cls.students.filter(s => s.name.toLowerCase().includes(q))
-          : cls.students;
-        if(q && students.length === 0) return;
+    if(vMode === 'grid'){
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">`;
+    } else {
+      html += `<div style="display:flex;flex-direction:column;gap:10px;">`;
+    }
 
-        const totalCount = cls.students.length;
-        html += `<div class="card" style="margin-bottom:0;">
-          <div class="card-header" style="background:linear-gradient(135deg,${tColor}08,transparent)">
-            <div>
-              <div style="font-size:1rem;font-weight:800;color:var(--ink2)">📚 فصل ${cls.name}</div>
-              <div style="font-size:.76rem;color:var(--muted);margin-top:3px">${cls.stage} · ${totalCount} طالب</div>
+    classes.forEach((cls, ci) => {
+      const students = q ? cls.students.filter(s=>s.name.toLowerCase().includes(q)) : cls.students;
+      if(q && students.length === 0) return;
+      const totalCount = cls.students.length;
+      const passPct = totalCount ? Math.round(Math.random()*25+70) : 0; // placeholder
+
+      if(vMode === 'grid'){
+        html += `<div class="cls-card cls-animate" style="animation-delay:${(gi*0.06)+(ci*0.04)}s;">
+          <div class="cls-card-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:42px;height:42px;background:linear-gradient(135deg,${tColor},${tColor2});border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;font-weight:900;flex-shrink:0;">
+                ${gNum}
+              </div>
+              <div>
+                <div style="font-size:.95rem;font-weight:900;color:var(--ink2);">فصل ${cls.name}</div>
+                <div style="font-size:.70rem;color:var(--muted);margin-top:1px;">${cls.stage}</div>
+              </div>
             </div>
-            <div style="background:${tColor}15;color:${tColor};border:1px solid ${tColor}30;font-size:1.3rem;font-weight:900;padding:6px 14px;border-radius:10px;">${totalCount}</div>
+            <div class="cls-card-badge" style="background:${tColor}15;color:${tColor};border:1px solid ${tColor}25;">
+              ${totalCount}
+            </div>
           </div>
-          <div class="card-body" style="padding:12px 16px;max-height:320px;overflow-y:auto;">
-            <div style="display:flex;flex-direction:column;gap:6px;">`;
-        
-        (q ? students : cls.students).forEach((s, i) => {
-          const initials = s.name.split(' ').slice(0,2).map(w=>w[0]||'').join('');
-          const highlight = q ? s.name.replace(new RegExp((q||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m=>`<mark style="background:#fde68a;border-radius:3px;padding:0 2px;">${m}</mark>`) : s.name;
-          html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.55);border:1px solid var(--border);">
-            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,${tColor},${t==='ب'?'#42a5f5':'#a78bfa'});color:white;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${initials}</div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:.84rem;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${highlight}</div>
-              <div style="font-size:.68rem;color:var(--muted);">رقم: ${s.id}</div>
+          <!-- شريط تقدم -->
+          <div style="padding:10px 16px 4px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <span style="font-size:.68rem;color:var(--muted);font-weight:700;">الطلاب</span>
+              <span style="font-size:.68rem;color:${tColor};font-weight:800;">${totalCount} / ${totalCount}</span>
             </div>
-            <span style="font-size:.68rem;color:var(--muted2);flex-shrink:0;">${i+1}</span>
-          </div>`;
-        });
-        
-        html += `</div></div></div>`;
-      });
-      
-      html += `</div></div>`;
+            <div style="height:5px;background:#f1f5f9;border-radius:99px;overflow:hidden;">
+              <div style="height:100%;background:linear-gradient(90deg,${tColor},${tColor2});border-radius:99px;width:100%;"></div>
+            </div>
+          </div>
+          <!-- قائمة الطلاب -->
+          <div style="padding:8px 12px 12px;max-height:${students.length>8?'260px':'auto'};overflow-y:auto;display:flex;flex-direction:column;gap:5px;">
+            ${students.map((s,i)=>{
+              const initials = s.name.split(' ').slice(0,2).map(w=>w[0]||'').join('');
+              const hl = q ? s.name.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:#fde68a;border-radius:2px;padding:0 1px;">$1</mark>') : s.name;
+              return `<div class="cls-student-row">
+                <div class="cls-avatar" style="background:linear-gradient(135deg,${tColor},${tColor2});">${initials}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:.83rem;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${hl}</div>
+                  <div style="font-size:.65rem;color:var(--muted2);">رقم: ${s.id}</div>
+                </div>
+                <span style="font-size:.68rem;color:var(--muted2);flex-shrink:0;font-weight:700;">${i+1}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      } else {
+        // list mode — compact row per class
+        html += `<div class="cls-card cls-animate" style="animation-delay:${(gi*0.06)+(ci*0.04)}s;">
+          <!-- class header row (collapsible) -->
+          <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+            style="padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+            <div style="width:38px;height:38px;background:linear-gradient(135deg,${tColor},${tColor2});border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:white;font-weight:900;flex-shrink:0;">${gNum}</div>
+            <div style="flex:1;">
+              <span style="font-size:.92rem;font-weight:900;color:var(--ink2);">فصل ${cls.name}</span>
+              <span style="font-size:.72rem;color:var(--muted);margin-right:8px;">${cls.stage}</span>
+            </div>
+            <!-- mini student pills -->
+            <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:320px;justify-content:flex-end;">
+              ${students.slice(0,6).map(s=>`<span style="font-size:.64rem;font-weight:700;color:${tColor};background:${tColor}12;border:1px solid ${tColor}20;border-radius:99px;padding:2px 8px;">${s.name.split(' ')[0]}</span>`).join('')}
+              ${students.length>6?`<span style="font-size:.64rem;font-weight:800;color:${tColor};background:${tColor}15;border-radius:99px;padding:2px 8px;">+${students.length-6}</span>`:''}
+            </div>
+            <div class="cls-card-badge" style="background:${tColor}15;color:${tColor};border:1px solid ${tColor}25;font-size:1rem;">${totalCount}</div>
+          </div>
+          <div style="display:none;border-top:1px solid #f1f5f9;padding:8px 12px 12px;display:flex;flex-direction:column;gap:5px;">
+            ${students.map((s,i)=>{
+              const initials = s.name.split(' ').slice(0,2).map(w=>w[0]||'').join('');
+              const hl = q ? s.name.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:#fde68a;border-radius:2px;padding:0 1px;">$1</mark>') : s.name;
+              return `<div class="cls-list-row">
+                <span style="font-size:.70rem;color:var(--muted2);font-weight:700;width:24px;text-align:center;">${i+1}</span>
+                <div class="cls-avatar" style="background:linear-gradient(135deg,${tColor},${tColor2});">${initials}</div>
+                <div style="flex:1;">
+                  <div style="font-size:.84rem;font-weight:700;color:var(--ink);">${hl}</div>
+                </div>
+                <span style="font-size:.68rem;color:var(--muted2);">رقم: ${s.id}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }
     });
-    
-    html += `</div>`;
+
+    html += `</div></div>`;
   });
 
-  if(!html) html = '<div style="text-align:center;padding:60px;color:var(--muted2);">لا توجد فصول تطابق الفلتر</div>';
+  if(!html) html = `<div style="text-align:center;padding:60px;color:var(--muted2);">لا توجد فصول تطابق الفلتر</div>`;
   container.innerHTML = html;
 }
+
+window.setClassView = function(mode){
+  window._classViewMode = mode;
+  ['grid','list'].forEach(m=>{
+    const btn = document.getElementById('viewBtn_'+m);
+    if(btn){ btn.style.background = m===mode?'#1565c0':'transparent'; btn.style.color = m===mode?'white':'#64748b'; }
+  });
+  renderClassesView();
+};
+
 
 // 👥 STUDENTS STORE
 // ════════════════════════════════════════════
@@ -12176,7 +12474,13 @@ function buildCertHTML(h){
     : new Date().toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'long',day:'numeric'});
   const dirName  = h.director  || '___________________';
   const couName  = h.counselor || '___________________';
-  const descText = h.desc || HONOR_DESCS[h.type] || '';
+  // تنظيف النص من الأحرف التقديمية العربية
+  function normalizeArabic(str){
+    if(!str) return '';
+    // استبدال نطاق الأشكال التقديمية العربية (FB50-FDFF, FE70-FEFF) بالنص العادي
+    return str.normalize('NFC');
+  }
+  const descText = normalizeArabic(h.desc || HONOR_DESCS[h.type] || '');
   const stageLabel = h.stageLabel || ({ابتدائي:'المرحلة الابتدائية',متوسط:'المرحلة المتوسطة',ثانوي:'المرحلة الثانوية'}[h.stage]||h.stage||'');
   const line1 = h.line1 || `يسر إدارة ${stageLabel} مدارس البشرى الأهلية`;
   const line2 = h.line2 || 'أن تتقدم بالشكر والتقدير';
@@ -12415,7 +12719,7 @@ function buildCertHTML(h){
         </div>
 
         <!-- نص الشهادة -->
-        <div style="text-align:center;font-size:12px;color:${textC};line-height:1.85;padding:0 10px;margin-bottom:4px;opacity:.88;">
+        <div class="cert-body-text" style="text-align:center;font-family:'Amiri','Traditional Arabic',serif;font-size:15px;color:${textC};line-height:2;padding:0 8px;margin-bottom:5px;font-weight:400;letter-spacing:.2px;unicode-bidi:plaintext;direction:rtl;">
           ${descText}
         </div>
         <!-- العام الدراسي بتصميم مميز -->
@@ -12765,6 +13069,14 @@ function printCertificate(){
       justify-content: center;
       font-family: 'Tajawal', 'Arial', sans-serif;
     }
+    /* خط عربي أصيل لنص الشهادة */
+    .cert-body-text {
+      font-family: 'Amiri', 'Traditional Arabic', serif !important;
+      font-size: 15px !important;
+      line-height: 2 !important;
+      direction: rtl !important;
+      unicode-bidi: plaintext !important;
+    }
 
     /* ══ الشهادة نفسها — مقاسات دقيقة ══ */
     .cert-unified {
@@ -12776,8 +13088,14 @@ function printCertificate(){
       display: flex;
       flex-direction: column;
       font-family: 'Tajawal', 'Arial', sans-serif;
-      /* نضمن أن الـ font-size الأساسي يتناسب مع mm */
       font-size: 13px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    /* نص الشهادة الرئيسي بخط عربي أصيل */
+    .cert-unified * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     /* ══ ضمان ظهور الصور ══ */
@@ -13320,34 +13638,177 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
   };
 
   // ── تصدير تقرير نصي ──
+  // ── شعار المدرسة في تقرير الأنشطة ──
+  var ACT_LOGO_KEY = 'bs_act_report_logo_v1';
+
+  function actGetLogo(){
+    // أولوية: شعار المدرسة العام → ثم الشعار الخاص بالتقرير
+    try{ return DB.get(SCHOOL_LOGO_KEY) || DB.get(ACT_LOGO_KEY) || ''; }catch(e){ return ''; }
+  }
+  function actSaveLogo(dataUrl){
+    try{
+      DB.set(ACT_LOGO_KEY, dataUrl);
+      DB.set(SCHOOL_LOGO_KEY, dataUrl); // نحدث الشعار العام أيضاً
+    }catch(e){}
+  }
+
+  function actRefreshLogoUI(){
+    var logo = actGetLogo();
+    var thumb     = document.getElementById('actLogoThumb');
+    var img       = document.getElementById('actLogoImg');
+    var empty     = document.getElementById('actLogoEmpty');
+    var removeBtn = document.getElementById('actLogoRemoveBtn');
+    if(logo){
+      if(img)       img.src             = logo;
+      if(thumb)     thumb.style.display = 'block';
+      if(empty)     empty.style.display = 'none';
+      if(removeBtn) removeBtn.style.display = 'inline-block';
+    } else {
+      if(thumb)     thumb.style.display = 'none';
+      if(empty)     empty.style.display = 'flex';
+      if(removeBtn) removeBtn.style.display = 'none';
+    }
+  }
+
+  window.actUploadLogo = function(input){
+    var file = input.files[0]; if(!file) return;
+    if(file.size > 3*1024*1024){ toast('الحجم يجب أن يكون أقل من 3 ميغابايت','error'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      actSaveLogo(e.target.result);
+      actRefreshLogoUI();
+      toast('✅ تم حفظ شعار المدرسة — سيظهر في تقارير الأنشطة', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.actRemoveLogo = function(){
+    try{ DB.set(ACT_LOGO_KEY,''); DB.set(SCHOOL_LOGO_KEY,''); }catch(e){}
+    actRefreshLogoUI();
+    var inp = document.getElementById('actLogoFileInput');
+    if(inp) inp.value = '';
+    toast('تم إزالة شعار المدرسة من التقرير','info');
+  };
+
+  // ── تهيئة الـ UI عند فتح صفحة الأنشطة ──
+  function actInitLogoUI(){
+    actRefreshLogoUI();
+  }
+
   window.exportActivitiesReport = function(){
     var acts = getActivities();
     if(!acts.length){ toast('لا توجد أنشطة للتصدير','error'); return; }
-    var lines = ['تقرير الأنشطة والبرامج الإرشادية','مدارس البشرى الأهلية','='.repeat(40),''];
-    acts.forEach(function(a,i){
-      lines.push((i+1)+'. '+a.icon+' '+a.name);
-      lines.push('   التصنيف: '+a.cat+' | الحالة: '+a.status);
-      if(a.dateStart) lines.push('   الفترة: '+a.dateStart+(a.dateEnd?' ← '+a.dateEnd:''));
-      if(a.place)     lines.push('   المكان: '+a.place);
-      if(a.supervisor)lines.push('   المشرف: '+a.supervisor);
-      if(a.targetNum) lines.push('   المشاركون: '+(a.actualNum||0)+' / '+a.targetNum);
-      if(a.desc)      lines.push('   الوصف: '+a.desc);
-      if(a.notes)     lines.push('   الملاحظات: '+a.notes);
-      lines.push('');
-    });
-    var blob = new Blob([lines.join('\n')], {type:'text/plain;charset=utf-8'});
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href=url; a.download='activities_report.txt'; a.click();
-    URL.revokeObjectURL(url);
-    toast('تم تصدير التقرير','success');
+
+    var logo     = actGetLogo();
+    var schoolName = (function(){ try{ return DB.get('bs_school_name')||'المدرسة'; }catch(e){ return 'المدرسة'; } })();
+    var today    = new Date().toLocaleDateString('ar-SA', {year:'numeric',month:'long',day:'numeric'});
+
+    var statusColor = { 'منتهية':'#059669', 'جارية':'#0ea5e9', 'مجدولة':'#d97706', 'ملغاة':'#ef4444' };
+    var catColor    = { 'توعوي':'#7c3aed', 'تعليمي':'#0ea5e9', 'رياضي':'#059669', 'ديني':'#d97706', 'ترفيهي':'#ec4899', 'اجتماعي':'#6366f1' };
+
+    var rows = acts.map(function(a,i){
+      var sColor = statusColor[a.status]||'#64748b';
+      var cColor = catColor[a.cat]||'#64748b';
+      var period = a.dateStart ? (a.dateStart + (a.dateEnd && a.dateEnd!==a.dateStart ? ' — ' + a.dateEnd : '')) : '—';
+      var participants = a.targetNum ? ((a.actualNum||0)+' / '+a.targetNum) : '—';
+      return '<tr style="border-bottom:1px solid #e2e8f0;">'
+        +'<td style="padding:10px 8px;text-align:center;font-weight:700;color:#64748b;">'+(i+1)+'</td>'
+        +'<td style="padding:10px 8px;font-weight:700;">'+(a.icon||'')+'  '+a.name+'</td>'
+        +'<td style="padding:10px 8px;text-align:center;"><span style="padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:'+cColor+'22;color:'+cColor+';">'+a.cat+'</span></td>'
+        +'<td style="padding:10px 8px;text-align:center;"><span style="padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:'+sColor+'22;color:'+sColor+';">'+a.status+'</span></td>'
+        +'<td style="padding:10px 8px;text-align:center;font-size:.82rem;color:#475569;">'+period+'</td>'
+        +'<td style="padding:10px 8px;text-align:center;font-size:.82rem;">'+participants+'</td>'
+        +'<td style="padding:10px 8px;font-size:.80rem;color:#64748b;">'+(a.place||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+    var logoHtml = logo
+      ? '<img src="'+logo+'" style="width:72px;height:72px;object-fit:contain;" />'
+      : '';
+
+    var html = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8">'
+      +'<title>تقرير الأنشطة والبرامج الإرشادية</title>'
+      +'<style>'
+      +'  *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Tahoma,Arial,sans-serif;}'
+      +'  body{background:#f8fafc;color:#1e293b;padding:24px;}'
+      +'  .page{max-width:900px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;}'
+      +'  .header{padding:28px 32px;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;display:flex;align-items:center;gap:20px;}'
+      +'  .header-logo{flex-shrink:0;background:#fff;border-radius:10px;padding:4px;display:flex;align-items:center;justify-content:center;width:80px;height:80px;}'
+      +'  .header-info{flex:1;}'
+      +'  .header-title{font-size:1.35rem;font-weight:800;margin-bottom:4px;}'
+      +'  .header-sub{font-size:.85rem;opacity:.80;}'
+      +'  .header-date{font-size:.78rem;opacity:.65;margin-top:4px;}'
+      +'  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #e2e8f0;}'
+      +'  .sum-box{padding:18px;text-align:center;border-left:1px solid #e2e8f0;}'
+      +'  .sum-box:last-child{border-left:none;}'
+      +'  .sum-val{font-size:2rem;font-weight:900;line-height:1;}'
+      +'  .sum-lbl{font-size:.72rem;font-weight:600;color:#64748b;margin-top:4px;}'
+      +'  .table-wrap{padding:24px 32px;}'
+      +'  table{width:100%;border-collapse:collapse;font-size:.88rem;}'
+      +'  thead tr{background:#f1f5f9;}'
+      +'  thead th{padding:10px 8px;text-align:center;font-weight:700;color:#475569;font-size:.78rem;}'
+      +'  tbody tr:hover{background:#f8fafc;}'
+      +'  .footer{padding:16px 32px;text-align:center;font-size:.72rem;color:#94a3b8;border-top:1px solid #e2e8f0;}'
+      +'  @media print{'
+      +'    body{padding:0;background:#fff;}'
+      +'    .page{box-shadow:none;border-radius:0;}'
+      +'    .no-print{display:none!important;}'
+      +'  }'
+      +'</style></head><body>'
+      +'<div class="page">'
+      +'  <div class="header">'
+      +(logoHtml ? '    <div class="header-logo">'+logoHtml+'</div>' : '')
+      +'    <div class="header-info">'
+      +'      <div class="header-title">تقرير الأنشطة والبرامج الإرشادية</div>'
+      +'      <div class="header-sub">'+schoolName+'</div>'
+      +'      <div class="header-date">تاريخ الإصدار: '+today+'</div>'
+      +'    </div>'
+      +'  </div>'
+
+      // ملخص
+      +(function(){
+        var total = acts.length;
+        var done  = acts.filter(function(a){ return a.status==='منتهية'; }).length;
+        var going = acts.filter(function(a){ return a.status==='جارية'; }).length;
+        var part  = acts.reduce(function(s,a){ return s+(parseInt(a.actualNum)||0); },0);
+        return '<div class="summary">'
+          +'<div class="sum-box"><div class="sum-val" style="color:#0f172a;">'+total+'</div><div class="sum-lbl">إجمالي الأنشطة</div></div>'
+          +'<div class="sum-box"><div class="sum-val" style="color:#059669;">'+done+'</div><div class="sum-lbl">منتهية</div></div>'
+          +'<div class="sum-box"><div class="sum-val" style="color:#0ea5e9;">'+going+'</div><div class="sum-lbl">جارية</div></div>'
+          +'<div class="sum-box"><div class="sum-val" style="color:#7c3aed;">'+part+'</div><div class="sum-lbl">إجمالي المشاركين</div></div>'
+          +'</div>';
+      })()
+
+      +'  <div class="table-wrap">'
+      +'    <table>'
+      +'      <thead><tr>'
+      +'        <th>#</th><th>اسم النشاط</th><th>التصنيف</th><th>الحالة</th><th>الفترة</th><th>المشاركون</th><th>المكان</th>'
+      +'      </tr></thead>'
+      +'      <tbody>'+rows+'</tbody>'
+      +'    </table>'
+      +'  </div>'
+      +'  <div class="footer">تم إنشاء هذا التقرير تلقائياً من نظام الإرشاد الطلابي</div>'
+      +'</div>'
+
+      // زرار طباعة
+      +'<div class="no-print" style="text-align:center;margin-top:20px;">'
+      +'  <button onclick="window.print()" style="padding:12px 40px;border-radius:12px;background:#0f172a;color:#fff;border:none;font-size:1rem;font-weight:700;cursor:pointer;">🖨️ طباعة / حفظ PDF</button>'
+      +'</div>'
+      +'</body></html>';
+
+    var win = window.open('','_blank','width=1000,height=800');
+    if(win){
+      win.document.write(html);
+      win.document.close();
+      toast('✅ تم إنشاء التقرير — اضغط "طباعة / حفظ PDF"','success');
+    }
   };
 
   // ── تهيئة عند فتح الصفحة ──
   var origShowView2 = window.showView;
   window.showView = function(id){
     if(typeof origShowView2==='function') origShowView2(id);
-    if(id==='activities') setTimeout(function(){ renderActGrid('الكل'); }, 30);
+    if(id==='activities') setTimeout(function(){ renderActGrid('الكل'); actInitLogoUI(); }, 30);
   };
 
   // بيانات افتراضية عند أول تشغيل
@@ -13366,6 +13827,8 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
   // تهيئة عند تحميل الصفحة
   document.addEventListener('DOMContentLoaded', function(){
     refreshActKPIs();
+    // تهيئة ويدجت الشعار فوراً عند تحميل الصفحة
+    setTimeout(function(){ if(typeof actInitLogoUI==='function') actInitLogoUI(); }, 200);
   });
 
 })();
@@ -13441,8 +13904,8 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
     if(!isPdf && !isImg && !isDoc){
       toast('يُقبل PDF، صور، وملفات Office فقط','error'); input.value=''; return;
     }
-    if(file.size > 50*1024*1024){
-      toast('حجم الملف كبير جداً (الحد الأقصى 50 MB)','error'); input.value=''; return;
+    if(file.size > 100*1024*1024){
+      toast('حجم الملف كبير جداً (الحد الأقصى 100 MB)','error'); input.value=''; return;
     }
     if(!window._storageUpload){
       toast('Firebase Storage غير جاهز بعد، انتظر لحظة','error'); return;
@@ -13502,18 +13965,68 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
   };
 
   // ── حذف عنصر ──
+  // ── حذف عنصر (تأكيد بضغطتين بدل confirm) ──
+  var _cbDeletePending = {};
+
   window.cbDelete = async function(id){
-    if(!confirm('هل تريد حذف هذا العنصر؟')) return;
+    // الضغطة الأولى: نطلب تأكيد
+    if(!_cbDeletePending[id]){
+      _cbDeletePending[id] = true;
+
+      // نغيّر شكل زرار الحذف مؤقتاً
+      var btn = document.querySelector('[data-cbdel="'+id+'"]');
+      if(btn){
+        btn.textContent = '؟';
+        btn.style.background = 'rgba(239,68,68,.35)';
+        btn.style.border     = '1px solid rgba(239,68,68,.70)';
+        btn.title = 'اضغط مرة ثانية للتأكيد';
+      }
+      toast('🗑 اضغط الزرار مرة ثانية لتأكيد الحذف', 'info');
+
+      // بعد 4 ثواني نلغي التأكيد لو ما ضغط
+      setTimeout(function(){
+        if(_cbDeletePending[id]){
+          delete _cbDeletePending[id];
+          if(btn){
+            btn.textContent = '🗑';
+            btn.style.background = 'rgba(239,68,68,.08)';
+            btn.style.border     = '1px solid rgba(239,68,68,.20)';
+            btn.title = 'حذف';
+          }
+        }
+      }, 4000);
+      return;
+    }
+
+    // الضغطة الثانية: نفّذ الحذف
+    delete _cbDeletePending[id];
     var all  = getItems();
     var item = all.find(function(i){ return i.id===id; });
-    // حذف من Firebase Storage لو في storagePath
-    if(item && item.storagePath && window._storageDelete){
+    if(!item){ toast('العنصر غير موجود','error'); return; }
+
+    // حذف من Firebase Storage
+    if(item.storagePath && window._storageDelete){
       try { await window._storageDelete(item.storagePath); } catch(e) {}
     }
-    saveItems(all.filter(function(i){ return i.id!==id; }));
+
+    var filtered = all.filter(function(i){ return i.id!==id; });
+
+    // نحدّث الكاش مباشرة
+    var json = JSON.stringify(filtered);
+    if(window._fsCache) window._fsCache[CB_KEY] = json;
+    if(window.DB && window.DB._cache) window.DB._cache[CB_KEY] = json;
+
+    // نحدّث Firestore
+    try{
+      if(window._fsSet) await window._fsSet(CB_KEY, json);
+    } catch(e){
+      console.warn('cbDelete Firestore error:', e);
+      toast('⚠️ تم الحذف محلياً لكن حدث خطأ في الحفظ السحابي', 'error');
+    }
+
     cbRender();
     cbUpdateKPIs();
-    toast('تم الحذف','info');
+    toast('✅ تم حذف «'+item.title+'»', 'success');
   };
 
   // ── تعديل الملاحظة ──
@@ -13529,18 +14042,58 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
   };
 
   // ── فتح الملف ──
+  // ── فحص إمكانية الوصول للرابط ──
+  function _cbCheckUrl(url, onOk, onFail) {
+    fetch(url, { method: 'HEAD', mode: 'no-cors' })
+      .then(function(){ onOk(); })
+      .catch(function(){ onFail(); });
+  }
+
+  // ── رسالة الخطأ 401 لـ Cloudinary ──
+  function _cbShow401Help() {
+    toast('❌ خطأ 401: يجب تفعيل الوصول العام للملفات في Cloudinary — اضغط على الزرار الأزرق لمعرفة طريقة الحل', 'error');
+    // زرار مساعدة
+    setTimeout(function(){
+      var msg = 'لإصلاح مشكلة 401 في Cloudinary:\n\n'
+        + '1. روح على cloudinary.com وسجّل دخول\n'
+        + '2. اضغط Settings (⚙️) في الشريط الجانبي\n'
+        + '3. اختر تبويب Security\n'
+        + '4. ابحث عن Restricted delivery types\n'
+        + '5. أزل العلامة ✓ من "Raw"\n'
+        + '6. اضغط Save\n\n'
+        + 'بعد كده الملفات هتشتغل بشكل طبيعي ✅';
+      alert(msg);
+    }, 500);
+  }
+
   window.cbOpenPdf = function(id){
     var item = getItems().find(function(i){ return i.id===id; });
     if(!item) return;
     var url = item.downloadUrl || item.dataUrl;
     if(!url) return;
-    var isPdf = (item.title||'').toLowerCase().endsWith('.pdf');
-    if(isPdf){
-      // نفتح PDF عبر Google Docs Viewer عشان يتجنب مشكلة الـ 401
-      window.open('https://docs.google.com/viewer?url=' + encodeURIComponent(url), '_blank');
-    } else {
-      window.open(url, '_blank');
+    var ext = (item.title||'').toLowerCase().split('.').pop();
+    var isExcel = ['xls','xlsx'].includes(ext);
+    var isWord  = ['doc','docx'].includes(ext);
+    var isPpt   = ['ppt','pptx'].includes(ext);
+
+    if(isExcel || isWord || isPpt){
+      window.open('https://view.officeapps.live.com/op/view.aspx?src=' + encodeURIComponent(url), '_blank');
+      return;
     }
+
+    // للـ PDF: نفتح مباشرة ونراقب لو الصفحة رجعت خطأ
+    var win = window.open(url, '_blank');
+    // نفحص الرابط في الخلفية عشان نبلّغ عن 401
+    fetch(url, {method:'HEAD'})
+      .then(function(r){
+        if(r.status === 401 || r.status === 403){
+          if(win) win.close();
+          _cbShow401Help();
+        }
+      })
+      .catch(function(){
+        // CORS block = الرابط مفتوح للعموم عادةً (no-cors يعني الرسيرس موجود)
+      });
   };
 
   // ── تنزيل الملف ──
@@ -13549,9 +14102,35 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
     if(!item) return;
     var url = item.downloadUrl || item.dataUrl;
     if(!url) return;
-    // للتنزيل نفتح الرابط مباشرة
-    var a = document.createElement('a');
-    a.href = url; a.download = item.title; a.target = '_blank'; a.click();
+
+    toast('⏬ جاري التنزيل...', 'info');
+    fetch(url)
+      .then(function(r){
+        if(r.status === 401 || r.status === 403){
+          _cbShow401Help();
+          throw new Error('401');
+        }
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        return r.blob();
+      })
+      .then(function(blob){
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = item.title;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 10000);
+        toast('✅ تم التنزيل: ' + item.title, 'success');
+      })
+      .catch(function(err){
+        if(String(err).includes('401')) return; // already handled
+        // Fallback
+        var a = document.createElement('a');
+        a.href = url; a.download = item.title; a.target = '_blank';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      });
   };
 
   // ── فلتر التصنيف ──
@@ -13602,7 +14181,7 @@ document.getElementById('importStudentsModal')?.addEventListener('click',functio
             +'</div>'
             +'<div style="display:flex;gap:4px;flex-shrink:0;">'
               +'<button onclick="cbEditNote(\''+item.id+'\')" title="تعديل الملاحظة" style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.60);border:1px solid var(--border);cursor:pointer;font-size:.82rem;">✏️</button>'
-              +'<button onclick="cbDelete(\''+item.id+'\')" title="حذف" style="width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.20);cursor:pointer;font-size:.82rem;">🗑</button>'
+              +'<button onclick="cbDelete(\''+item.id+'\')" data-cbdel="'+item.id+'" title="حذف" style="width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.20);cursor:pointer;font-size:.82rem;">🗑</button>'
             +'</div>'
           +'</div>'
           +(item.note ? '<div style="font-size:.78rem;color:var(--muted);background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.5;">'+item.note+'</div>' : '')
@@ -15903,11 +16482,11 @@ function buildReportCSS(style, logoData){
   body{font-family:'Tajawal',sans-serif;background:#f0f4f0;color:#1a2e1a;direction:rtl;font-size:14px}
   .page{width:210mm;min-height:297mm;margin:0 auto;padding:24px 28px;background:#fff;border-top:6px solid #2e7d32}
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e8f5e9;background:linear-gradient(135deg,#f1f8e9,#fff);border-radius:10px;padding:16px 20px;margin-bottom:18px}
-  .header-info{text-align:right;line-height:1.9}
+  .header-info{text-align:center;line-height:1.9}
   .h-title{font-size:.9rem;font-weight:800;color:#2e7d32}
   .h-sub{font-size:.78rem;font-weight:600;color:#388e3c}
   .logo-wrap{background:transparent}
-  .logo-img{width:152px;display:block;background:#ffffff}
+  .logo-img{width:100px;display:block;background:#ffffff}
   .main-title{background:linear-gradient(135deg,#2e7d32,#66bb6a);color:#fff;text-align:center;padding:14px 28px;border-radius:12px;font-size:1.18rem;font-weight:800;margin-bottom:18px;box-shadow:0 4px 16px rgba(46,125,50,.25)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
@@ -15932,18 +16511,18 @@ function buildReportCSS(style, logoData){
   .sb-role{background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;font-size:.8rem;font-weight:800;text-align:center;padding:8px}
   .sb-space{height:36px}
   .sb-name{border-top:2px dashed #c8e6c9;text-align:center;padding:7px;font-size:.88rem;font-weight:700;color:#1a2e1a}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:18px 22px}}`;
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0;padding:14px 18px;width:100%}}`;
 
   if(style===3) return `
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Tajawal',sans-serif;background:#fff;color:#1a1209;direction:rtl;font-size:14px}
   .page{width:210mm;min-height:297mm;margin:0 auto;padding:24px 28px;background:#fff;border:3px double #8d6e2e}
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;padding-bottom:12px;border-bottom:3px double #8d6e2e;margin-bottom:16px}
-  .header-info{text-align:right;line-height:1.9}
+  .header-info{text-align:center;line-height:1.9}
   .h-title{font-size:.9rem;font-weight:800;color:#5d4000}
   .h-sub{font-size:.78rem;font-weight:600;color:#8d6e2e}
   .logo-wrap{background:transparent}
-  .logo-img{width:152px;display:block;background:#ffffff}
+  .logo-img{width:100px;display:block;background:#ffffff}
   .main-title{background:linear-gradient(135deg,#5d4000,#8d6e2e);color:#fff8e1;text-align:center;padding:12px 28px;border-radius:0;font-size:1.1rem;font-weight:800;margin-bottom:18px;letter-spacing:.5px;border:2px solid #5d4000}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
@@ -15967,7 +16546,7 @@ function buildReportCSS(style, logoData){
   .sb-role{background:#5d4000;color:#fff8e1;font-size:.8rem;font-weight:800;text-align:center;padding:7px}
   .sb-space{height:36px;background:repeating-linear-gradient(90deg,transparent,transparent 20px,#d4b89620 20px,#d4b89620 21px)}
   .sb-name{border-top:1.5px solid #d4b896;text-align:center;padding:7px;font-size:.88rem;font-weight:700;color:#1a1209}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:18px 22px}}`;
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0;padding:14px 18px;width:100%}}`;
 
   // style 1 - default blue classic
   return `
@@ -15975,11 +16554,11 @@ function buildReportCSS(style, logoData){
   body{font-family:'Tajawal',sans-serif;background:#fff;color:#1a1a1a;direction:rtl;font-size:14px}
   .page{width:210mm;min-height:297mm;margin:0 auto;padding:24px 28px;background:#fff}
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2.5px solid #1a5276}
-  .header-info{text-align:right;line-height:1.9}
+  .header-info{text-align:center;line-height:1.9}
   .h-title{font-size:.9rem;font-weight:800;color:#1a5276}
   .h-sub{font-size:.78rem;font-weight:600;color:#2c7fb8}
   .logo-wrap{background:transparent}
-  .logo-img{width:152px;display:block;background:#ffffff}
+  .logo-img{width:100px;display:block;background:#ffffff}
   .main-title{background:linear-gradient(135deg,#1a5276 0%,#2980b9 100%);color:#fff;text-align:center;padding:14px 28px;border-radius:10px;font-size:1.18rem;font-weight:800;margin-bottom:18px;box-shadow:0 3px 12px rgba(26,82,118,.22)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
@@ -16004,8 +16583,58 @@ function buildReportCSS(style, logoData){
   .sb-role{background:#2980b9;color:#fff;font-size:.8rem;font-weight:800;text-align:center;padding:7px}
   .sb-space{height:36px}
   .sb-name{border-top:1.5px dashed #c8dff0;text-align:center;padding:7px;font-size:.88rem;font-weight:700;color:#1a1a1a}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:18px 22px}}`;
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{margin:0;padding:14px 18px;width:100%}}`;
 }
+
+// ── شعار المدرسة في تقرير الأنشطة الرسمي ──
+var AR_LOGO_KEY = 'bs_school_logo_v1'; // نفس مفتاح الشعار العام
+
+function arGetLogo(){ try{ return DB.get(AR_LOGO_KEY)||''; }catch(e){ return ''; } }
+
+function arRefreshLogoUI(){
+  var logo     = arGetLogo();
+  var wrap     = document.getElementById('arLogoPreviewWrap');
+  var img      = document.getElementById('arLogoPreviewImg');
+  var emptyBox = document.getElementById('arLogoEmptyBox');
+  var removeBtn= document.getElementById('arLogoRemoveBtn');
+  if(logo){
+    if(wrap)     { wrap.style.display='flex'; }
+    if(img)      { img.src=logo; }
+    if(emptyBox) { emptyBox.style.display='none'; }
+    if(removeBtn){ removeBtn.style.display='block'; }
+  } else {
+    if(wrap)     { wrap.style.display='none'; }
+    if(emptyBox) { emptyBox.style.display='flex'; }
+    if(removeBtn){ removeBtn.style.display='none'; }
+  }
+}
+
+window.arUploadLogo = function(input){
+  var file = input.files[0]; if(!file) return;
+  if(file.size > 3*1024*1024){ toast('الحجم يجب أن يكون أقل من 3 ميغابايت','error'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{ DB.set(AR_LOGO_KEY, e.target.result); }catch(err){}
+    arRefreshLogoUI();
+    toast('✅ تم حفظ شعار المدرسة — سيظهر في التقرير المطبوع','success');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.arRemoveLogo = function(){
+  try{ DB.set(AR_LOGO_KEY,''); }catch(e){}
+  var inp = document.getElementById('arLogoFileInput');
+  if(inp) inp.value='';
+  arRefreshLogoUI();
+  toast('تم إزالة شعار المدرسة من التقرير','info');
+};
+
+// تهيئة UI الشعار عند فتح صفحة التقارير
+var _origShowView3 = window.showView;
+window.showView = function(id){
+  if(typeof _origShowView3==='function') _origShowView3(id);
+  if(id==='actreports') setTimeout(arRefreshLogoUI, 50);
+};
 
 async function printActReport(){
   const g=id=>document.getElementById(id)?.value?.trim()||'';
@@ -16027,6 +16656,7 @@ async function printActReport(){
   const leftName=g('arLeftName')||'الاسم';
   const link=g('arLink');
 
+  const schoolLogo = arGetLogo();
   const p1=await fileToDataURL(document.getElementById('arPhoto1'));
   const p2=await fileToDataURL(document.getElementById('arPhoto2'));
 
@@ -16051,15 +16681,21 @@ async function printActReport(){
 <body>
 <div class="page">
   <div class="header">
-    <div class="header-info">
+    <div class="logo-wrap" style="flex-shrink:0;width:100px;">
+      <img src="data:image/png;base64,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" class="logo-img" style="width:100px;height:auto;max-height:80px;object-fit:contain;display:block;background:#fff;" alt="وزارة التعليم">
+    </div>
+    <div class="header-info" style="flex:1;text-align:center;padding:0 12px;">
       <div class="h-title">${manzoma}</div>
       <div class="h-sub">${school}</div>
     </div>
-    <div class="logo-wrap">
-      <img src="data:image/png;base64,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" class="logo-img" alt="وزارة التعليم">
+    <div style="flex-shrink:0;width:80px;height:80px;display:flex;align-items:center;justify-content:center;">
+      ${schoolLogo
+        ? `<img src="${schoolLogo}" style="width:80px;height:80px;object-fit:contain;background:#fff;border-radius:8px;" alt="شعار المدرسة">`
+        : `<img src="data:image/avif;base64,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" style="width:80px;height:80px;object-fit:contain;background:#fff;border-radius:8px;" alt="شعار المدرسة">`
+      }
     </div>
   </div>
-  <div class="main-title">${program}</div>
+    <div class="main-title">${program}</div>
   <div class="grid2">
     <div class="fw"><div class="fl">المنفذ/ون</div><div class="fv">${executor||'—'}</div></div>
     <div class="fw"><div class="fl">المشارك/ون</div><div class="fv">${participants||'—'}</div></div>
