@@ -909,7 +909,7 @@ body.dark .honor-card, body.theme-neu .honor-card{background:rgba(8,12,30,0.75);
 
 /* ─── زر التبديل المتحرك ─── */
 .admin-theme-toggle {
-  width: 90px; height: 32px;
+  width: 106px; height: 32px;
   background: rgba(21,101,192,0.12);
   border: 1.5px solid rgba(21,101,192,0.25);
   border-radius: 99px;
@@ -939,26 +939,30 @@ body.dark .honor-card, body.theme-neu .honor-card{background:rgba(8,12,30,0.75);
   pointer-events: none; user-select: none; white-space: nowrap;
   transition: color 0.3s;
 }
-/* dark */
+/* light — thumb في أقصى اليمين (position 1/5) */
+body:not(.dark):not(.theme-neu):not(.theme-sky):not(.theme-slate) .admin-theme-toggle .tgl-thumb {
+  transform: translateX(0px);
+}
+/* dark — أقصى اليسار (position 3/5) */
 body.dark .admin-theme-toggle {
   background: rgba(0,212,255,0.18);
   border-color: rgba(0,212,255,0.40);
   box-shadow: 0 0 12px rgba(0,212,255,0.22);
 }
 body.dark .admin-theme-toggle .tgl-thumb {
-  transform: translateX(-58px);
+  transform: translateX(-38px);
   background: #0a1a2e;
   box-shadow: 0 0 8px rgba(0,212,255,0.50), 0 2px 6px rgba(0,0,0,0.40);
 }
 body.dark .admin-theme-toggle .tgl-label { color: rgba(0,212,255,0.80); }
-/* neu */
+/* neu — position 2/5 */
 body.theme-neu .admin-theme-toggle {
   background: rgba(139,92,246,0.25);
   border-color: rgba(139,92,246,0.50);
   box-shadow: 0 0 16px rgba(139,92,246,0.30);
 }
 body.theme-neu .admin-theme-toggle .tgl-thumb {
-  transform: translateX(-31px);
+  transform: translateX(-19px);
   background: linear-gradient(135deg, #a78bfa, #60a5fa);
   box-shadow: 0 0 10px rgba(139,92,246,0.65), 0 2px 6px rgba(0,0,0,0.30);
 }
@@ -1470,6 +1474,277 @@ body.dark .stu-tab, body.theme-neu .stu-tab {
   border-color: rgba(255,255,255,0.12);
   color: rgba(200,210,255,0.65);
 }
+
+/* ══════════════════════════════════════════════════════
+   🩵 THEME 4 — SKY (سماوي أزرق — شخصية مائية واضحة)
+   ══════════════════════════════════════════════════════ */
+body.theme-sky {
+  --ink:#08284a; --ink2:#0c3d6b;
+  --sky:#0369a1; --sky2:#0ea5e9; --sky3:#7dd3fc;
+  --gold:#f59e0b; --ember:#ef4444; --mint:#10b981; --plum:#7c3aed;
+  --card:rgba(219,241,255,.78);
+  --border:rgba(3,105,161,.22); --border2:rgba(3,105,161,.40);
+  --muted:#2e6a96; --muted2:#6aafd4;
+  --shadow-sm:0 2px 16px rgba(3,105,161,.18);
+  --shadow:0 8px 32px rgba(3,105,161,.28);
+  --glass-bg:rgba(219,241,255,.60); --glass-blur:none;
+  color:var(--ink);
+}
+body.theme-sky::before {
+  background:#bae6fd;
+  background-image:
+    radial-gradient(ellipse 85% 65% at 10% 5%,rgba(56,189,248,.75) 0%,transparent 55%),
+    radial-gradient(ellipse 65% 60% at 90% 10%,rgba(125,211,252,.65) 0%,transparent 52%),
+    radial-gradient(ellipse 75% 65% at 5% 90%,rgba(14,165,233,.55) 0%,transparent 55%),
+    radial-gradient(ellipse 60% 55% at 90% 90%,rgba(99,179,237,.45) 0%,transparent 52%),
+    radial-gradient(ellipse 50% 50% at 50% 50%,rgba(186,230,253,.40) 0%,transparent 65%);
+  pointer-events:none;
+}
+body.theme-sky { background:#bae6fd; }
+
+/* topbar — أزرق داكن مميز */
+body.theme-sky .topbar {
+  background:rgba(3,105,161,.88);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 1px 0 rgba(255,255,255,.20) inset, 0 4px 28px rgba(3,105,161,.40), 0 1px 8px rgba(0,0,0,.15);
+}
+body.theme-sky .topbar::after {
+  background:linear-gradient(to left,transparent 0%,rgba(56,189,248,.50) 30%,rgba(125,211,252,.70) 50%,rgba(56,189,248,.50) 70%,transparent 100%);
+}
+body.theme-sky .topbar-logo { background:linear-gradient(135deg,#0284c7,#38bdf8); box-shadow:0 4px 18px rgba(56,189,248,.55); border-color:rgba(255,255,255,.35); }
+body.theme-sky .topbar-title  { color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.25); }
+body.theme-sky .topbar-subtitle { background:linear-gradient(90deg,#7dd3fc,#bae6fd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+body.theme-sky .topbar-badge { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.35); color:#e0f2fe; }
+body.theme-sky .topbar-time  { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); color:#bae6fd; }
+body.theme-sky .refresh-btn  { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.32); color:#e0f2fe; }
+body.theme-sky .refresh-btn:hover { background:rgba(255,255,255,.28); border-color:rgba(255,255,255,.50); box-shadow:0 4px 14px rgba(0,0,0,.20); }
+body.theme-sky .topbar-user-name { color:#e0f2fe !important; }
+body.theme-sky .topbar-user-role { color:rgba(186,230,253,.80) !important; }
+
+/* sidebar — أزرق متوسط */
+body.theme-sky .sidebar {
+  background:rgba(7,89,133,.82);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-left:1px solid rgba(56,189,248,.25);
+  box-shadow:-4px 0 24px rgba(3,105,161,.30);
+}
+body.theme-sky .sidebar-label { color:rgba(125,211,252,.65); font-size:.68rem; letter-spacing:.08em; }
+body.theme-sky .nav-item { color:rgba(224,242,254,.80); }
+body.theme-sky .nav-item:hover  { background:rgba(56,189,248,.18); color:#e0f2fe; }
+body.theme-sky .nav-item.active {
+  background:rgba(56,189,248,.28);
+  border-color:rgba(125,211,252,.50);
+  color:#fff;
+  box-shadow:0 2px 12px rgba(56,189,248,.25) inset;
+}
+body.theme-sky .nav-item .nav-icon { filter:brightness(1.3); }
+body.theme-sky .nav-badge { background:rgba(56,189,248,.35); color:#e0f2fe; border-color:rgba(125,211,252,.40); }
+
+/* cards — أبيض شفاف مع tint سماوي مرئي */
+body.theme-sky .card,
+body.theme-sky .class-card,
+body.theme-sky .stu-card {
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(3,105,161,.20);
+  box-shadow:0 2px 20px rgba(3,105,161,.16), 0 1px 0 rgba(255,255,255,.80) inset;
+}
+body.theme-sky .card-header, body.theme-sky .class-card-header, body.theme-sky .class-card-footer {
+  border-color:rgba(3,105,161,.16);
+  background:rgba(186,230,253,.20);
+}
+body.theme-sky .card-header h3, body.theme-sky .class-name, body.theme-sky .stu-name, body.theme-sky .page-title { color:#08284a; }
+body.theme-sky .class-meta, body.theme-sky .stu-class, body.theme-sky .stu-phone, body.theme-sky .page-sub { color:#2e6a96; }
+body.theme-sky .page-title::before { background:linear-gradient(135deg,#0369a1,#38bdf8); }
+
+/* KPIs */
+body.theme-sky .kpi {
+  background:rgba(255,255,255,.75);
+  border:1px solid rgba(3,105,161,.18);
+  box-shadow:0 2px 12px rgba(3,105,161,.12);
+}
+body.theme-sky .kpi-val { color:#08284a; }
+body.theme-sky .kpi.blue .kpi-val { color:#0369a1; }
+body.theme-sky .kpi-label { color:#2e6a96; }
+body.theme-sky .kpi-icon { filter:drop-shadow(0 2px 4px rgba(3,105,161,.25)); }
+
+/* table */
+body.theme-sky .tbl th {
+  background:rgba(186,230,253,.45);
+  color:#0c3d6b;
+  border-bottom:2px solid rgba(3,105,161,.20);
+}
+body.theme-sky .tbl tbody tr:hover { background:rgba(3,105,161,.06); }
+body.theme-sky .tbl td { border-color:rgba(3,105,161,.08); }
+
+/* buttons */
+body.theme-sky .btn-primary { background:linear-gradient(135deg,#0369a1,#0ea5e9); box-shadow:0 4px 14px rgba(3,105,161,.35); color:#fff; }
+body.theme-sky .btn-primary:hover { box-shadow:0 6px 22px rgba(3,105,161,.52); transform:translateY(-1px); }
+body.theme-sky .btn-ghost { background:rgba(255,255,255,.75); border-color:rgba(3,105,161,.28); color:#08284a; }
+body.theme-sky .btn-ghost:hover { background:rgba(186,230,253,.50); border-color:rgba(3,105,161,.45); }
+
+/* inputs */
+body.theme-sky .stu-search-bar, body.theme-sky .filters-bar { background:rgba(255,255,255,.65); border-color:rgba(3,105,161,.18); box-shadow:0 2px 12px rgba(3,105,161,.10); }
+body.theme-sky .stu-search-input, body.theme-sky .filter-input { background:rgba(255,255,255,.85); border-color:rgba(3,105,161,.22); color:#08284a; }
+body.theme-sky .stu-search-input:focus, body.theme-sky .filter-input:focus { border-color:#0369a1; box-shadow:0 0 0 3px rgba(3,105,161,.16); }
+body.theme-sky .fg input, body.theme-sky .fg select, body.theme-sky .fg textarea { background:rgba(255,255,255,.85); border-color:rgba(3,105,161,.22); color:#08284a; }
+body.theme-sky .fg input:focus, body.theme-sky .fg select:focus, body.theme-sky .fg textarea:focus { border-color:#0369a1; box-shadow:0 0 0 3px rgba(3,105,161,.16); }
+body.theme-sky .fg label { color:#2e6a96; font-weight:600; }
+
+/* misc */
+body.theme-sky .upload-zone, body.theme-sky .xl-zone { background:rgba(186,230,253,.35); border-color:rgba(3,105,161,.35); border-style:dashed; }
+body.theme-sky .absence-item { background:rgba(255,255,255,.65); border-color:rgba(3,105,161,.16); }
+body.theme-sky .class-stat { background:rgba(186,230,253,.30); border-color:rgba(3,105,161,.18); }
+body.theme-sky .stu-beh { background:rgba(186,230,253,.28); border-color:rgba(3,105,161,.22); color:#08284a; border-right:3px solid #0369a1; }
+body.theme-sky .stu-beh-label { color:#0369a1; font-weight:700; }
+body.theme-sky .tl { color:rgba(3,105,161,.18); text-shadow:2px 4px 8px rgba(3,105,161,.20); }
+body.theme-sky .tl:nth-child(2){color:rgba(14,165,233,.14);}
+body.theme-sky .tl:nth-child(3){color:rgba(125,211,252,.22);}
+body.theme-sky .live-dot { background:#0ea5e9; box-shadow:0 0 10px rgba(14,165,233,.80); }
+body.theme-sky .admin-theme-toggle { background:rgba(3,105,161,.15); border-color:rgba(3,105,161,.35); box-shadow:0 0 10px rgba(3,105,161,.20); }
+body.theme-sky .admin-theme-toggle .tgl-thumb { transform:translateX(-57px); background:linear-gradient(135deg,#0369a1,#38bdf8); box-shadow:0 0 10px rgba(3,105,161,.55),0 2px 6px rgba(0,0,0,.18); }
+body.theme-sky .admin-theme-toggle .tgl-label { color:rgba(3,105,161,.90); }
+body.theme-sky #globalSearchModal > div { background:#f0f9ff !important; border-color:rgba(3,105,161,.30) !important; }
+body.theme-sky #globalSearchInput { color:#08284a !important; }
+body.theme-sky .stu-tab { background:rgba(186,230,253,.35); border-color:rgba(3,105,161,.22); color:#2e6a96; }
+body.theme-sky .stu-tab:hover, body.theme-sky .stu-tab.active { background:rgba(3,105,161,.18); color:#08284a; border-color:rgba(3,105,161,.40); }
+body.theme-sky ::-webkit-scrollbar-thumb { background:rgba(3,105,161,.35); border-radius:99px; }
+body.theme-sky ::-webkit-scrollbar-track { background:rgba(186,230,253,.30); }
+
+/* ══════════════════════════════════════════════════════
+   🌫️ THEME 5 — SLATE (رمادي فضي — مظهر corporate نظيف)
+   ══════════════════════════════════════════════════════ */
+body.theme-slate {
+  --ink:#111827; --ink2:#1f2937;
+  --sky:#374151; --sky2:#4b5563; --sky3:#9ca3af;
+  --gold:#d97706; --ember:#dc2626; --mint:#059669; --plum:#6d28d9;
+  --card:rgba(255,255,255,.95);
+  --border:rgba(55,65,81,.16); --border2:rgba(55,65,81,.30);
+  --muted:#6b7280; --muted2:#9ca3af;
+  --shadow-sm:0 1px 8px rgba(0,0,0,.08), 0 2px 16px rgba(0,0,0,.06);
+  --shadow:0 4px 24px rgba(0,0,0,.12), 0 1px 4px rgba(0,0,0,.08);
+  --glass-bg:rgba(255,255,255,.90); --glass-blur:none;
+  color:var(--ink);
+}
+body.theme-slate::before {
+  background:#e5e7eb;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 5% 5%,rgba(229,231,235,.95) 0%,transparent 60%),
+    radial-gradient(ellipse 70% 60% at 95% 10%,rgba(243,244,246,.90) 0%,transparent 55%),
+    radial-gradient(ellipse 60% 60% at 5% 95%,rgba(209,213,219,.85) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 50% at 95% 95%,rgba(243,244,246,.80) 0%,transparent 50%);
+  pointer-events:none;
+}
+body.theme-slate { background:#e5e7eb; }
+
+/* topbar — رمادي داكن أنيق */
+body.theme-slate .topbar {
+  background:rgba(17,24,39,.92);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 4px 24px rgba(0,0,0,.28), 0 1px 6px rgba(0,0,0,.18);
+}
+body.theme-slate .topbar::after {
+  background:linear-gradient(to left,transparent 0%,rgba(156,163,175,.25) 30%,rgba(209,213,219,.40) 50%,rgba(156,163,175,.25) 70%,transparent 100%);
+}
+body.theme-slate .topbar-logo { background:linear-gradient(135deg,#374151,#6b7280); box-shadow:0 4px 18px rgba(0,0,0,.35); border-color:rgba(255,255,255,.15); }
+body.theme-slate .topbar-title  { color:#f9fafb; text-shadow:0 1px 3px rgba(0,0,0,.30); }
+body.theme-slate .topbar-subtitle { background:linear-gradient(90deg,#9ca3af,#d1d5db); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+body.theme-slate .topbar-badge { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.20); color:#d1d5db; }
+body.theme-slate .topbar-time  { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:#9ca3af; }
+body.theme-slate .refresh-btn  { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.20); color:#d1d5db; }
+body.theme-slate .refresh-btn:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.35); }
+body.theme-slate .topbar-user-name { color:#f9fafb !important; }
+body.theme-slate .topbar-user-role { color:rgba(156,163,175,.85) !important; }
+
+/* sidebar — رمادي داكن */
+body.theme-slate .sidebar {
+  background:rgba(31,41,55,.90);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-left:1px solid rgba(255,255,255,.08);
+  box-shadow:-4px 0 24px rgba(0,0,0,.20);
+}
+body.theme-slate .sidebar-label { color:rgba(107,114,128,.80); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
+body.theme-slate .nav-item { color:rgba(209,213,219,.85); }
+body.theme-slate .nav-item:hover  { background:rgba(255,255,255,.06); color:#f9fafb; }
+body.theme-slate .nav-item.active {
+  background:rgba(255,255,255,.10);
+  border-color:rgba(209,213,219,.25);
+  color:#f9fafb;
+  border-right:3px solid #9ca3af;
+}
+body.theme-slate .nav-badge { background:rgba(156,163,175,.25); color:#d1d5db; border-color:rgba(209,213,219,.20); }
+
+/* cards — أبيض نقي مع borders رمادية واضحة */
+body.theme-slate .card,
+body.theme-slate .class-card,
+body.theme-slate .stu-card {
+  background:#ffffff;
+  border:1px solid rgba(55,65,81,.14);
+  box-shadow:0 1px 8px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05);
+}
+body.theme-slate .card:hover,
+body.theme-slate .class-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.12), 0 1px 4px rgba(0,0,0,.06); }
+body.theme-slate .card-header, body.theme-slate .class-card-header, body.theme-slate .class-card-footer {
+  border-color:rgba(55,65,81,.12);
+  background:rgba(249,250,251,.80);
+}
+body.theme-slate .card-header h3, body.theme-slate .class-name, body.theme-slate .stu-name, body.theme-slate .page-title { color:#111827; }
+body.theme-slate .class-meta, body.theme-slate .stu-class, body.theme-slate .stu-phone, body.theme-slate .page-sub { color:#6b7280; }
+body.theme-slate .page-title::before { background:linear-gradient(135deg,#374151,#6b7280); }
+
+/* KPIs */
+body.theme-slate .kpi {
+  background:#ffffff;
+  border:1px solid rgba(55,65,81,.12);
+  box-shadow:0 1px 6px rgba(0,0,0,.06);
+}
+body.theme-slate .kpi-val { color:#111827; }
+body.theme-slate .kpi.blue .kpi-val { color:#374151; }
+body.theme-slate .kpi-label { color:#6b7280; }
+
+/* table */
+body.theme-slate .tbl th {
+  background:#f9fafb;
+  color:#374151;
+  border-bottom:2px solid rgba(55,65,81,.15);
+  font-weight:700;
+  letter-spacing:.03em;
+}
+body.theme-slate .tbl tbody tr:hover { background:#f9fafb; }
+body.theme-slate .tbl td { border-color:rgba(55,65,81,.08); }
+
+/* buttons */
+body.theme-slate .btn-primary { background:linear-gradient(135deg,#1f2937,#374151); box-shadow:0 4px 14px rgba(0,0,0,.22); color:#fff; }
+body.theme-slate .btn-primary:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); transform:translateY(-1px); }
+body.theme-slate .btn-ghost { background:#fff; border:1px solid rgba(55,65,81,.22); color:#1f2937; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+body.theme-slate .btn-ghost:hover { background:#f9fafb; border-color:rgba(55,65,81,.38); }
+
+/* inputs */
+body.theme-slate .stu-search-bar, body.theme-slate .filters-bar { background:#fff; border:1px solid rgba(55,65,81,.14); box-shadow:0 1px 6px rgba(0,0,0,.06); }
+body.theme-slate .stu-search-input, body.theme-slate .filter-input { background:#fff; border-color:rgba(55,65,81,.20); color:#111827; }
+body.theme-slate .stu-search-input:focus, body.theme-slate .filter-input:focus { border-color:#374151; box-shadow:0 0 0 3px rgba(55,65,81,.10); }
+body.theme-slate .fg input, body.theme-slate .fg select, body.theme-slate .fg textarea { background:#fff; border-color:rgba(55,65,81,.20); color:#111827; }
+body.theme-slate .fg input:focus, body.theme-slate .fg select:focus, body.theme-slate .fg textarea:focus { border-color:#374151; box-shadow:0 0 0 3px rgba(55,65,81,.10); }
+body.theme-slate .fg label { color:#374151; font-weight:600; }
+
+/* misc */
+body.theme-slate .upload-zone, body.theme-slate .xl-zone { background:#fff; border-color:rgba(55,65,81,.28); border-style:dashed; }
+body.theme-slate .absence-item { background:#fff; border-color:rgba(55,65,81,.12); box-shadow:0 1px 4px rgba(0,0,0,.05); }
+body.theme-slate .class-stat { background:#f9fafb; border-color:rgba(55,65,81,.12); }
+body.theme-slate .stu-beh { background:#f9fafb; border-color:rgba(55,65,81,.16); color:#111827; border-right:3px solid #6b7280; }
+body.theme-slate .stu-beh-label { color:#374151; font-weight:700; }
+body.theme-slate .tl { color:rgba(55,65,81,.10); text-shadow:2px 4px 8px rgba(0,0,0,.08); }
+body.theme-slate .tl:nth-child(2){color:rgba(107,114,128,.08);}
+body.theme-slate .tl:nth-child(3){color:rgba(156,163,175,.12);}
+body.theme-slate .live-dot { background:#6b7280; box-shadow:0 0 8px rgba(107,114,128,.55); }
+body.theme-slate .admin-theme-toggle { background:rgba(55,65,81,.12); border-color:rgba(55,65,81,.28); }
+body.theme-slate .admin-theme-toggle .tgl-thumb { transform:translateX(-76px); background:linear-gradient(135deg,#374151,#6b7280); box-shadow:0 0 8px rgba(55,65,81,.40),0 2px 6px rgba(0,0,0,.22); }
+body.theme-slate .admin-theme-toggle .tgl-label { color:rgba(55,65,81,.90); }
+body.theme-slate #globalSearchModal > div { background:#ffffff !important; border-color:rgba(55,65,81,.18) !important; }
+body.theme-slate #globalSearchInput { color:#111827 !important; }
+body.theme-slate .stu-tab { background:#fff; border-color:rgba(55,65,81,.16); color:#6b7280; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+body.theme-slate .stu-tab:hover, body.theme-slate .stu-tab.active { background:#f3f4f6; color:#111827; border-color:rgba(55,65,81,.32); }
+body.theme-slate ::-webkit-scrollbar-thumb { background:rgba(55,65,81,.28); border-radius:99px; }
+body.theme-slate ::-webkit-scrollbar-track { background:rgba(0,0,0,.04); }
 
 /* ═══════════════════════════════════════════
    👤 PROFILE PAGE — صفحة الملف الشخصي
@@ -4708,7 +4983,7 @@ async function doLogin(){
             </div>
             <div class="fg"><label>المظهر</label>
               <div style="display:flex;gap:10px;margin-top:4px;">
-                <button class="btn btn-ghost btn-sm" onclick="adminCycleTheme()" style="flex:1;">🔄 تبديل المظهر (فاتح ← ليلي ← كلاي)</button>
+                <button class="btn btn-ghost btn-sm" onclick="adminCycleTheme()" style="flex:1;">🔄 تبديل المظهر (فاتح ← ليلي ← كلاي ← سماوي ← رمادي)</button>
               </div>
             </div>
             <div class="fg"><label>وضع ملء الشاشة</label>
@@ -10227,13 +10502,33 @@ window.setClassView = function(mode){
 // 👥 STUDENTS STORE
 // ════════════════════════════════════════════
 const STU_KEY = 'bs_admin_students';
+const BEH_KEY = 'bs_admin_behaviors'; // مفتاح منفصل لتقييمات السلوك (يشمل hardcoded)
+
+/* قراءة كل تقييمات السلوك من Firebase — { [studentId]: {stars,tags,notes,updatedAt} } */
+function getBehaviors(){
+  try{ return DB.getJSON(BEH_KEY, {}); }catch(e){ return {}; }
+}
+/* حفظ تقييم سلوك طالب واحد */
+function saveBehavior(stuId, beh){
+  const all = getBehaviors();
+  all[stuId] = beh;
+  DB.setJSON(BEH_KEY, all);
+}
+
 function getStudents() {
   // Merge hardcoded students with any dynamically added students
   const dynamic = (function(){ try{ return DB.getJSON(STU_KEY, []); }catch(e){ return []; } })();
   // Filter out dynamic ones that already exist in hardcoded (by id)
   const hardcodedIds = new Set(HARDCODED_STUDENTS.map(s=>s.id));
   const dynamicExtra = dynamic.filter(s=>!hardcodedIds.has(s.id));
-  return [...HARDCODED_STUDENTS, ...dynamicExtra];
+  // دمج تقييمات السلوك المحفوظة مع كل الطلاب (hardcoded + dynamic)
+  const behaviors = getBehaviors();
+  const all = [...HARDCODED_STUDENTS, ...dynamicExtra];
+  return all.map(s => {
+    const savedBeh = behaviors[s.id];
+    if(savedBeh) return { ...s, adm_behavior: savedBeh };
+    return s;
+  });
 }
 function saveStudents(d){
   // Only save non-hardcoded students to Firebase (Firestore)
@@ -10528,10 +10823,18 @@ function saveAdmBeh(){
   const id    = document.getElementById('admBehStuId').value;
   const notes = document.getElementById('admBehNotes').value.trim();
   const tags  = [...document.querySelectorAll('#admPosTags .beh-tag.sel, #admNegTags .beh-tag.sel')].map(b=>b.textContent.trim());
-  const all   = getStudents();
-  const idx   = all.findIndex(s=>s.id===id); if(idx<0) return;
-  all[idx].adm_behavior = { stars:_admBehStars, tags, notes, updatedAt:new Date().toISOString() };
-  saveStudents(all);
+  if(!id){ toast('خطأ: لم يتم تحديد الطالب','error'); return; }
+  const beh = { stars:_admBehStars, tags, notes, updatedAt:new Date().toISOString() };
+  // ✅ حفظ في مفتاح منفصل يشمل hardcoded + dynamic
+  saveBehavior(id, beh);
+  // تحديث الـ local array للعرض الفوري
+  const all = getStudents();
+  const idx = all.findIndex(s=>s.id===id);
+  if(idx>=0){
+    all[idx].adm_behavior = beh;
+    // حفظ الطلاب غير hardcoded فقط في STU_KEY
+    saveStudents(all);
+  }
   document.getElementById('admBehModal').classList.remove('open');
   renderStudentsPage();
   toast('✅ تم حفظ التقييم السلوكي','success');
@@ -15932,17 +16235,20 @@ window.showView = function(id){
 };
 
 // ════════════════════════════════════════════════
-// 🎨 نظام الأنماط — light / dark / neu
+// 🎨 نظام الأنماط — light / neu / dark / sky / slate
 // ════════════════════════════════════════════════
-var _THEMES = ['light','neu','dark'];
-var _THEME_META   = { light:'#1e3a5f', dark:'#030813', neu:'#0f0c29' };
-var _THEME_ICONS  = { light:'☀️', dark:'🌙', neu:'✦' };
-var _THEME_LABELS = { light:'فاتح', dark:'ليلي', neu:'كلاي' };
+// الترتيب مطابق لمواضع الـ thumb: 0 / -19 / -38 / -57 / -76
+var _THEMES = ['light','neu','dark','sky','slate'];
+var _THEME_META   = { light:'#1e3a5f', dark:'#030813', neu:'#0f0c29', sky:'#0c3a6e', slate:'#2d3748' };
+var _THEME_ICONS  = { light:'☀️', dark:'🌙', neu:'✦', sky:'🩵', slate:'🌫️' };
+var _THEME_LABELS = { light:'فاتح', dark:'ليلي', neu:'كلاي', sky:'سماوي', slate:'رمادي' };
 
 function _applyTheme(theme){
-  document.body.classList.remove('dark','theme-neu');
-  if(theme==='dark') document.body.classList.add('dark');
-  if(theme==='neu')  document.body.classList.add('theme-neu');
+  document.body.classList.remove('dark','theme-neu','theme-sky','theme-slate');
+  if(theme==='dark')  document.body.classList.add('dark');
+  if(theme==='neu')   document.body.classList.add('theme-neu');
+  if(theme==='sky')   document.body.classList.add('theme-sky');
+  if(theme==='slate') document.body.classList.add('theme-slate');
 
   // تحديث الأيقونة والليبل داخل الزر
   var thumb = document.getElementById('tglThumb');
@@ -15958,6 +16264,10 @@ function _applyTheme(theme){
 function adminCycleTheme(){
   var cur = 'light';
   try{ cur = DB.get('admin_theme')||'light'; }catch(e){}
+  // fallback للقيم القديمة
+  if(cur==='rose') cur='sky';
+  if(cur==='mint') cur='slate';
+  if(!_THEMES.includes(cur)) cur='light';
   var next = _THEMES[(_THEMES.indexOf(cur)+1) % _THEMES.length];
   _applyTheme(next);
 }
@@ -15966,6 +16276,10 @@ function adminCycleTheme(){
 ;(function(){
   var saved = 'light';
   try{ saved = DB.get('admin_theme')||'light'; }catch(e){}
+  // fallback للقيم القديمة
+  if(saved==='rose') saved='sky';
+  if(saved==='mint') saved='slate';
+  if(!_THEMES.includes(saved)) saved='light';
   _applyTheme(saved);
 })();
 
