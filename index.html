@@ -17,18 +17,29 @@
 (function(){
   var manifest = {
     name: 'لوحة الإدارة — مدارس البشرى',
-    short_name: 'البشرى',
-    description: 'لوحة إدارة الإرشاد الطلابي',
-    start_url: window.location.href,
+    short_name: 'البشرى الإدارة',
+    description: 'لوحة إدارة الإرشاد الطلابي — مدارس البشرى الأهلية',
+    id: 'bushra-admin-pwa-v1',
+    start_url: window.location.href.split('?')[0],
+    scope: window.location.href.split('?')[0],
     display: 'standalone',
+    display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
     background_color: '#c8d8ff',
     theme_color: '#1565c0',
     lang: 'ar',
     dir: 'rtl',
     orientation: 'any',
+    categories: ['education', 'productivity'],
+    prefer_related_applications: false,
     icons: [
-      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#1565c0"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
-      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#1565c0"/><text x="256" y="340" font-size="280" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#1565c0"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#1565c0"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '192x192', type: 'image/svg+xml', purpose: 'maskable' },
+      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#1565c0"/><text x="256" y="340" font-size="280" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+      { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#1565c0"/><text x="256" y="340" font-size="280" text-anchor="middle" fill="white">🏫</text></svg>'), sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' }
+    ],
+    shortcuts: [
+      { name: 'إدارة الطلاب', short_name: 'الطلاب', description: 'عرض وإدارة الطلاب', url: window.location.href.split('?')[0] + '?page=students', icons: [{ src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><text y="76" font-size="80">👨‍🎓</text></svg>'), sizes: '96x96' }] },
+      { name: 'التقارير', short_name: 'التقارير', description: 'استيراد تقارير المعلمين', url: window.location.href.split('?')[0] + '?page=reports', icons: [{ src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><text y="76" font-size="80">📊</text></svg>'), sizes: '96x96' }] }
     ]
   };
   var blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
@@ -40,9 +51,70 @@
 })();
 </script>
 
-<!-- Service Worker (inline) -->
+<!-- Service Worker (inline via blob) -->
 <script>
-// PWA: Service Worker disabled (blob: protocol not supported in GitHub Pages)
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+
+  // كود الـ Service Worker — Cache-first strategy
+  var swCode = `
+const CACHE = 'bushra-admin-v1';
+const OFFLINE_URL = self.location.href;
+
+self.addEventListener('install', function(e){
+  e.waitUntil(
+    caches.open(CACHE).then(function(cache){
+      return cache.addAll([OFFLINE_URL]);
+    }).catch(function(){})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(e){
+  e.waitUntil(
+    caches.keys().then(function(keys){
+      return Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+    })
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', function(e){
+  if(e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(function(cached){
+      if(cached) return cached;
+      return fetch(e.request).then(function(response){
+        if(response && response.status === 200 && response.type === 'basic'){
+          var clone = response.clone();
+          caches.open(CACHE).then(function(cache){ cache.put(e.request, clone); });
+        }
+        return response;
+      }).catch(function(){
+        return caches.match(OFFLINE_URL);
+      });
+    })
+  );
+});
+`;
+
+  try {
+    var blob = new Blob([swCode], {type:'application/javascript'});
+    var swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl, {scope: '/'})
+      .then(function(reg){
+        console.log('[SW] Registered:', reg.scope);
+      })
+      .catch(function(err){
+        // blob: scope restriction — try with current path
+        navigator.serviceWorker.register(swUrl)
+          .then(function(reg){ console.log('[SW] Registered (fallback):', reg.scope); })
+          .catch(function(e2){ console.warn('[SW] Registration failed:', e2.message); });
+      });
+  } catch(e){
+    console.warn('[SW] Blob SW failed:', e.message);
+  }
+})();
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -1504,22 +1576,22 @@ body.theme-sky { background:#bae6fd; }
 
 /* topbar — أزرق داكن مميز */
 body.theme-sky .topbar {
-  background:rgba(3,105,161,.88);
+  background:rgba(224,242,254,.92);
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-  box-shadow:0 1px 0 rgba(255,255,255,.20) inset, 0 4px 28px rgba(3,105,161,.40), 0 1px 8px rgba(0,0,0,.15);
+  box-shadow:0 1px 0 rgba(255,255,255,.80) inset, 0 4px 24px rgba(3,105,161,.15), 0 1px 8px rgba(3,105,161,.08);
 }
 body.theme-sky .topbar::after {
   background:linear-gradient(to left,transparent 0%,rgba(56,189,248,.50) 30%,rgba(125,211,252,.70) 50%,rgba(56,189,248,.50) 70%,transparent 100%);
 }
 body.theme-sky .topbar-logo { background:linear-gradient(135deg,#0284c7,#38bdf8); box-shadow:0 4px 18px rgba(56,189,248,.55); border-color:rgba(255,255,255,.35); }
-body.theme-sky .topbar-title  { color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.25); }
-body.theme-sky .topbar-subtitle { background:linear-gradient(90deg,#7dd3fc,#bae6fd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-body.theme-sky .topbar-badge { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.35); color:#e0f2fe; }
-body.theme-sky .topbar-time  { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); color:#bae6fd; }
-body.theme-sky .refresh-btn  { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.32); color:#e0f2fe; }
-body.theme-sky .refresh-btn:hover { background:rgba(255,255,255,.28); border-color:rgba(255,255,255,.50); box-shadow:0 4px 14px rgba(0,0,0,.20); }
-body.theme-sky .topbar-user-name { color:#e0f2fe !important; }
-body.theme-sky .topbar-user-role { color:rgba(186,230,253,.80) !important; }
+body.theme-sky .topbar-title  { color:#08284a; text-shadow:none; }
+body.theme-sky .topbar-subtitle { background:linear-gradient(90deg,#0369a1,#0ea5e9); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+body.theme-sky .topbar-badge { background:rgba(3,105,161,.10); border-color:rgba(3,105,161,.25); color:#0369a1; }
+body.theme-sky .topbar-time  { background:rgba(3,105,161,.08); border-color:rgba(3,105,161,.20); color:#0369a1; }
+body.theme-sky .refresh-btn  { background:rgba(255,255,255,.75); border-color:rgba(3,105,161,.22); color:#0369a1; }
+body.theme-sky .refresh-btn:hover { background:rgba(3,105,161,.12); border-color:rgba(3,105,161,.38); box-shadow:0 4px 14px rgba(3,105,161,.18); }
+body.theme-sky .topbar-user-name { color:#08284a !important; }
+body.theme-sky .topbar-user-role { color:#2e6a96 !important; }
 
 /* sidebar — أزرق متوسط */
 body.theme-sky .sidebar {
@@ -1600,7 +1672,7 @@ body.theme-sky .tl { color:rgba(3,105,161,.18); text-shadow:2px 4px 8px rgba(3,1
 body.theme-sky .tl:nth-child(2){color:rgba(14,165,233,.14);}
 body.theme-sky .tl:nth-child(3){color:rgba(125,211,252,.22);}
 body.theme-sky .live-dot { background:#0ea5e9; box-shadow:0 0 10px rgba(14,165,233,.80); }
-body.theme-sky .admin-theme-toggle { background:rgba(3,105,161,.15); border-color:rgba(3,105,161,.35); box-shadow:0 0 10px rgba(3,105,161,.20); }
+body.theme-sky .admin-theme-toggle { background:rgba(3,105,161,.12); border-color:rgba(3,105,161,.28); box-shadow:0 0 8px rgba(3,105,161,.18); }
 body.theme-sky .admin-theme-toggle .tgl-thumb { transform:translateX(-57px); background:linear-gradient(135deg,#0369a1,#38bdf8); box-shadow:0 0 10px rgba(3,105,161,.55),0 2px 6px rgba(0,0,0,.18); }
 body.theme-sky .admin-theme-toggle .tgl-label { color:rgba(3,105,161,.90); }
 body.theme-sky #globalSearchModal > div { background:#f0f9ff !important; border-color:rgba(3,105,161,.30) !important; }
@@ -1638,22 +1710,22 @@ body.theme-slate { background:#e5e7eb; }
 
 /* topbar — رمادي داكن أنيق */
 body.theme-slate .topbar {
-  background:rgba(17,24,39,.92);
+  background:rgba(243,244,246,.92);
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-  box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 4px 24px rgba(0,0,0,.28), 0 1px 6px rgba(0,0,0,.18);
+  box-shadow:0 1px 0 rgba(255,255,255,.90) inset, 0 4px 24px rgba(0,0,0,.10), 0 1px 6px rgba(0,0,0,.06);
 }
 body.theme-slate .topbar::after {
   background:linear-gradient(to left,transparent 0%,rgba(156,163,175,.25) 30%,rgba(209,213,219,.40) 50%,rgba(156,163,175,.25) 70%,transparent 100%);
 }
 body.theme-slate .topbar-logo { background:linear-gradient(135deg,#374151,#6b7280); box-shadow:0 4px 18px rgba(0,0,0,.35); border-color:rgba(255,255,255,.15); }
-body.theme-slate .topbar-title  { color:#f9fafb; text-shadow:0 1px 3px rgba(0,0,0,.30); }
-body.theme-slate .topbar-subtitle { background:linear-gradient(90deg,#9ca3af,#d1d5db); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-body.theme-slate .topbar-badge { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.20); color:#d1d5db; }
-body.theme-slate .topbar-time  { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:#9ca3af; }
-body.theme-slate .refresh-btn  { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.20); color:#d1d5db; }
-body.theme-slate .refresh-btn:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.35); }
-body.theme-slate .topbar-user-name { color:#f9fafb !important; }
-body.theme-slate .topbar-user-role { color:rgba(156,163,175,.85) !important; }
+body.theme-slate .topbar-title  { color:#111827; text-shadow:none; }
+body.theme-slate .topbar-subtitle { background:linear-gradient(90deg,#374151,#6b7280); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+body.theme-slate .topbar-badge { background:rgba(55,65,81,.08); border-color:rgba(55,65,81,.20); color:#374151; }
+body.theme-slate .topbar-time  { background:rgba(55,65,81,.07); border-color:rgba(55,65,81,.18); color:#374151; }
+body.theme-slate .refresh-btn  { background:rgba(255,255,255,.85); border-color:rgba(55,65,81,.20); color:#374151; }
+body.theme-slate .refresh-btn:hover { background:rgba(55,65,81,.10); border-color:rgba(55,65,81,.35); }
+body.theme-slate .topbar-user-name { color:#111827 !important; }
+body.theme-slate .topbar-user-role { color:#6b7280 !important; }
 
 /* sidebar — رمادي داكن */
 body.theme-slate .sidebar {
@@ -1736,7 +1808,7 @@ body.theme-slate .tl { color:rgba(55,65,81,.10); text-shadow:2px 4px 8px rgba(0,
 body.theme-slate .tl:nth-child(2){color:rgba(107,114,128,.08);}
 body.theme-slate .tl:nth-child(3){color:rgba(156,163,175,.12);}
 body.theme-slate .live-dot { background:#6b7280; box-shadow:0 0 8px rgba(107,114,128,.55); }
-body.theme-slate .admin-theme-toggle { background:rgba(55,65,81,.12); border-color:rgba(55,65,81,.28); }
+body.theme-slate .admin-theme-toggle { background:rgba(55,65,81,.10); border-color:rgba(55,65,81,.25); box-shadow:0 0 6px rgba(0,0,0,.08); }
 body.theme-slate .admin-theme-toggle .tgl-thumb { transform:translateX(-76px); background:linear-gradient(135deg,#374151,#6b7280); box-shadow:0 0 8px rgba(55,65,81,.40),0 2px 6px rgba(0,0,0,.22); }
 body.theme-slate .admin-theme-toggle .tgl-label { color:rgba(55,65,81,.90); }
 body.theme-slate #globalSearchModal > div { background:#ffffff !important; border-color:rgba(55,65,81,.18) !important; }
@@ -1885,6 +1957,20 @@ body.theme-neu .profile-info-card{background:rgba(255,255,255,.08);border-color:
 body.theme-neu .topbar-profile-mini{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.30)}
 body.theme-neu .topbar-profile-mini:hover{background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.50)}
 body.theme-neu .topbar-profile-name{color:#e0e8ff}
+
+/* sky topbar overrides — النص أبيض لأن الخلفية داكنة */
+body.theme-sky .topbar-profile-mini { background:rgba(3,105,161,.10); border-color:rgba(3,105,161,.25); }
+body.theme-sky .topbar-profile-mini:hover { background:rgba(3,105,161,.18); border-color:rgba(3,105,161,.40); }
+body.theme-sky .topbar-profile-name { color:#08284a; }
+body.theme-sky .topbar-badge { color:#0369a1; }
+body.theme-sky .topbar-badge .live-dot { background:#0ea5e9; box-shadow:0 0 6px rgba(14,165,233,.70); }
+
+/* slate topbar overrides — النص فاتح لأن الخلفية سوداء */
+body.theme-slate .topbar-profile-mini { background:rgba(55,65,81,.08); border-color:rgba(55,65,81,.22); }
+body.theme-slate .topbar-profile-mini:hover { background:rgba(55,65,81,.14); border-color:rgba(55,65,81,.35); }
+body.theme-slate .topbar-profile-name { color:#111827; }
+body.theme-slate .topbar-badge { color:#374151; }
+body.theme-slate .topbar-badge .live-dot { background:#6b7280; box-shadow:0 0 6px rgba(107,114,128,.60); }
 
 /* ═══════════════════════════════════════════
    ⏳ SPLASH SCREEN — شاشة التحميل
