@@ -876,6 +876,47 @@ body.dark .honor-card, body.theme-neu .honor-card{background:rgba(8,12,30,0.75);
 @media(max-width:768px){:root{--sidebar-w:0px}.sidebar{display:none}.main{padding:16px}.layout{grid-template-columns:1fr}}
 
 /* ═══ STUDENTS PAGE ═══ */
+/* ══ صفحة التقييم السلوكي ══ */
+.beh-page-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.beh-class-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.beh-class-tab{padding:7px 16px;border-radius:99px;border:1.5px solid var(--border);background:var(--glass-bg);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .18s;color:var(--ink2);}
+.beh-class-tab.active,.beh-class-tab:hover{background:rgba(21,101,192,.12);border-color:rgba(21,101,192,.35);color:var(--sky);}
+.beh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.beh-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden;}
+.beh-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+.beh-card-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.beh-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;font-weight:800;border:2px solid rgba(255,255,255,.6);}
+.beh-card-name{font-size:.92rem;font-weight:800;color:var(--ink);line-height:1.3;}
+.beh-card-class{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.beh-stars-row{display:flex;gap:3px;margin-bottom:8px;}
+.beh-star{font-size:1.1rem;opacity:.25;transition:opacity .1s;}
+.beh-star.on{opacity:1;}
+.beh-tags-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;min-height:22px;}
+.beh-tag-pill{font-size:.68rem;padding:3px 9px;border-radius:99px;font-weight:700;border:1px solid;}
+.beh-tag-pill.pos{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:#059669;}
+.beh-tag-pill.neg{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#dc2626;}
+.beh-notes{font-size:.78rem;color:var(--muted);line-height:1.5;background:rgba(0,0,0,.03);border-radius:8px;padding:7px 10px;border-right:3px solid var(--sky);}
+.beh-no-eval{font-size:.80rem;color:var(--muted2);font-style:italic;text-align:center;padding:8px 0;}
+.beh-card-actions{display:flex;gap:6px;margin-top:12px;}
+.beh-card-btn{flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:var(--glass-bg);font-size:.75rem;font-weight:700;cursor:pointer;color:var(--ink2);transition:all .15s;font-family:inherit;}
+.beh-card-btn:hover{background:rgba(21,101,192,.10);border-color:rgba(21,101,192,.30);color:var(--sky);}
+.beh-card-btn.share{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:#059669;}
+.beh-summary-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.beh-kpi{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:14px;text-align:center;}
+.beh-kpi-val{font-size:1.8rem;font-weight:900;color:var(--ink);}
+.beh-kpi-lbl{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.beh-search{padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--glass-bg);font-size:.85rem;color:var(--ink);font-family:inherit;outline:none;min-width:200px;}
+.beh-search:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(21,101,192,.12);}
+.beh-filter-sel{padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--glass-bg);font-size:.82rem;color:var(--ink);font-family:inherit;outline:none;cursor:pointer;}
+.beh-card.no-eval{opacity:.75;}
+.beh-card.no-eval:hover{opacity:1;}
+@media print{
+  .topbar,.sidebar,.page-header .btn,.beh-page-filters,.beh-class-tabs,.beh-card-actions{display:none!important;}
+  .beh-card{break-inside:avoid;border:1px solid #ccc!important;box-shadow:none!important;transform:none!important;}
+  .beh-grid{grid-template-columns:repeat(3,1fr);}
+  .page-view:not(.active){display:block!important;}
+}
+
 .stu-search-bar{display:flex;align-items:center;gap:10px;background:var(--card);backdrop-filter:var(--glass-blur);border:1px solid rgba(255,255,255,.80);border-radius:var(--r);padding:14px 20px;margin-bottom:18px;flex-wrap:wrap;box-shadow:var(--shadow-sm)}
 .stu-search-input{flex:1;min-width:200px;padding:9px 16px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:rgba(255,255,255,.70);color:var(--ink);font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none;}
 .stu-search-input:focus{border-color:var(--sky)}
@@ -2959,7 +3000,7 @@ async function doLogin(){
     <div class="nav-item" onclick="showView('import')"><span class="nav-icon">📥</span>استيراد التقارير</div>
     <div class="nav-item" onclick="showView('dashboard')"><span class="nav-icon">🏠</span>لوحة التحكم<span class="nav-badge green" id="sideAbsCount">0</span></div>
     <div class="nav-item" onclick="showView('classes')"><span class="nav-icon">🏫</span>الفصول<span class="nav-badge green" id="sideClassCount">16</span></div>
-    <div class="nav-item" onclick="showView('students')"><span class="nav-icon">👥</span>إدارة الطلاب<span class="nav-badge green" id="sideStudentCount">0</span></div>
+    <div class="nav-item" onclick="showView('behavior')"><span class="nav-icon">⭐</span>التقييم السلوكي<span class="nav-badge green" id="sideBehCount">0</span></div>
     <div class="nav-item" onclick="showView('teachers')"><span class="nav-icon">👨‍🏫</span>المعلمون<span class="nav-badge green" id="sideTeacherCount">0</span></div>
     <div class="nav-item" onclick="showView('absences')"><span class="nav-icon">🚫</span>سجل الغياب الكامل</div>
     <div class="nav-item" onclick="showView('analytics')"><span class="nav-icon">📊</span>التحليلات</div>
@@ -4969,6 +5010,64 @@ async function doLogin(){
       </div>
 
     </div>
+    <!-- ═══════════════════════════════════════════════════
+         ⭐ صفحة التقييم السلوكي
+         ═══════════════════════════════════════════════════ -->
+    <div class="page-view" id="view-behavior">
+      <div class="page-header">
+        <div>
+          <div class="page-title">⭐ التقييم السلوكي</div>
+          <div class="page-sub" id="behPageSub">عرض وإدارة تقييمات سلوك الطلاب</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button onclick="behPrintCurrent()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:none;background:rgba(255,255,255,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#1e3a5f;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,.10),0 1px 0 rgba(255,255,255,.8) inset;border:1.5px solid rgba(255,255,255,.80);transition:all .18s;">
+            <span style="font-size:1rem;">🖨️</span> طباعة العرض الحالي
+          </button>
+          <button onclick="behShareCurrent()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(5,150,105,.30);transition:all .18s;">
+            <span style="font-size:1rem;">📤</span> مشاركة الفصل
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="showView('students')">➕ تقييم طالب</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="beh-summary-bar" id="behKpiBar">
+        <div class="beh-kpi"><div class="beh-kpi-val" id="behKpiTotal">0</div><div class="beh-kpi-lbl">📋 إجمالي الطلاب</div></div>
+        <div class="beh-kpi"><div class="beh-kpi-val" style="color:#059669" id="behKpiGood">0</div><div class="beh-kpi-lbl">😊 سلوك ممتاز (4-5 ⭐)</div></div>
+        <div class="beh-kpi"><div class="beh-kpi-val" style="color:#f59e0b" id="behKpiMid">0</div><div class="beh-kpi-lbl">😐 سلوك متوسط (3 ⭐)</div></div>
+        <div class="beh-kpi"><div class="beh-kpi-val" style="color:#ef4444" id="behKpiBad">0</div><div class="beh-kpi-lbl">⚠️ يحتاج متابعة (1-2 ⭐)</div></div>
+      </div>
+
+      <!-- فلاتر -->
+      <div class="beh-page-filters">
+        <input class="beh-search" id="behSearch" placeholder="🔍 بحث باسم الطالب..." oninput="renderBehPage()">
+        <select class="beh-filter-sel" id="behFilterStars" onchange="renderBehPage()">
+          <option value="">كل التقييمات</option>
+          <option value="5">⭐⭐⭐⭐⭐ ممتاز جداً</option>
+          <option value="4">⭐⭐⭐⭐ ممتاز</option>
+          <option value="3">⭐⭐⭐ جيد</option>
+          <option value="2">⭐⭐ يحتاج تحسين</option>
+          <option value="1">⭐ يحتاج متابعة</option>
+          <option value="0">غير مُقيَّم</option>
+        </select>
+        <select class="beh-filter-sel" id="behFilterClass" onchange="renderBehPage()">
+          <option value="">كل الفصول</option>
+        </select>
+        <select class="beh-filter-sel" id="behFilterSort" onchange="renderBehPage()">
+          <option value="name">ترتيب: الاسم</option>
+          <option value="stars_desc">ترتيب: الأعلى تقييماً</option>
+          <option value="stars_asc">ترتيب: الأدنى تقييماً</option>
+          <option value="class">ترتيب: الفصل</option>
+        </select>
+      </div>
+
+      <!-- تبويبات الفصول -->
+      <div class="beh-class-tabs" id="behClassTabs"></div>
+
+      <!-- شبكة البطاقات -->
+      <div class="beh-grid" id="behGrid"></div>
+    </div>
+
     <div class="page-view" id="view-settings">
       <div class="page-header">
         <div><div class="page-title">⚙️ إعدادات النظام</div><div class="page-sub">تخصيص بيانات المدرسة والمظهر</div></div>
@@ -10196,6 +10295,7 @@ function _renderPage(name){
   if(name==='analytics')     renderAnalytics();
   if(name==='classes')       renderClassesView();
   if(name==='students')      renderStudentsPage();
+  if(name==='behavior')      { if(typeof renderBehPage==='function') renderBehPage(); }
   if(name==='teachers')      renderTeachersPage();
   if(name==='meetings')      renderMeetings();
   if(name==='notes')          renderNotes();
@@ -10208,6 +10308,7 @@ function _renderPage(name){
   if(name==='reminders')     { if(typeof renderReminders==='function') renderReminders(); }
   if(name==='counseling')    renderCasesPage();
   if(name==='scales')        { showScale('behavior'); renderScaleResults(); }
+  if(name==='behavior')      { if(typeof renderBehPage==='function') renderBehPage(); }
   if(name==='monthlyreport') {}
 }
 
@@ -10857,18 +10958,34 @@ function saveAdmBeh(){
   const tags  = [...document.querySelectorAll('#admPosTags .beh-tag.sel, #admNegTags .beh-tag.sel')].map(b=>b.textContent.trim());
   if(!id){ toast('خطأ: لم يتم تحديد الطالب','error'); return; }
   const beh = { stars:_admBehStars, tags, notes, updatedAt:new Date().toISOString() };
-  // ✅ حفظ في مفتاح منفصل يشمل hardcoded + dynamic
-  saveBehavior(id, beh);
-  // تحديث الـ local array للعرض الفوري
-  const all = getStudents();
-  const idx = all.findIndex(s=>s.id===id);
-  if(idx>=0){
-    all[idx].adm_behavior = beh;
-    // حفظ الطلاب غير hardcoded فقط في STU_KEY
-    saveStudents(all);
+
+  // ✅ 1. تحديث الـ cache مباشرة عشان getStudents() يشوف التغيير فوراً
+  try {
+    const allBeh = DB.getJSON(BEH_KEY, {});
+    allBeh[id] = beh;
+    DB.setJSON(BEH_KEY, allBeh);          // يحدث الـ cache + يرسل لـ Firebase
+  } catch(e) {
+    console.warn('saveBehavior error:', e);
   }
+
+  // ✅ 2. تحديث الـ dynamic students لو مش hardcoded
+  try {
+    const all = getStudents();
+    saveStudents(all);                     // يحفظ الـ dynamic فقط
+  } catch(e) {}
+
+  // ✅ 3. إغلاق الـ modal
   document.getElementById('admBehModal').classList.remove('open');
-  renderStudentsPage();
+
+  // ✅ 4. تحديث الصفحة الحالية (behavior أو students)
+  const activeView = document.querySelector('.page-view.active');
+  const activeId   = activeView ? activeView.id : '';
+  if(activeId === 'view-behavior' && typeof renderBehPage === 'function'){
+    renderBehPage();
+  } else if(typeof renderStudentsPage === 'function'){
+    renderStudentsPage();
+  }
+
   toast('✅ تم حفظ التقييم السلوكي','success');
 }
 
@@ -14838,13 +14955,73 @@ window.runGlobalSearch = function(){
     setEl('remKpiUpcoming', upcomingArr.length);
     setEl('remKpiDone',     doneArr.length);
 
-    if(!rems.length){ grid.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
+
+    // ── بطاقة التحديثات المثبّتة ──
+    var updateCard = [
+      '<div style="grid-column:1/-1;background:linear-gradient(135deg,rgba(21,101,192,.07) 0%,rgba(124,58,237,.07) 100%);',
+        'border:1.5px solid rgba(21,101,192,.22);border-radius:20px;overflow:hidden;',
+        'box-shadow:0 4px 20px rgba(21,101,192,.10);">',
+        '<div style="height:4px;background:linear-gradient(to left,#7c3aed,#1565c0);"></div>',
+        '<div style="padding:20px 22px;">',
+
+          // header
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">',
+            '<div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1565c0,#7c3aed);',
+              'display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;',
+              'box-shadow:0 4px 12px rgba(21,101,192,.30);">🚀</div>',
+            '<div>',
+              '<div style="font-size:1rem;font-weight:900;color:var(--ink);">تحديثات النظام — آخر جلسة</div>',
+              '<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">📅 '+new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'}),' — مدارس البشرى الأهلية</div>',
+            '</div>',
+            '<span style="margin-right:auto;font-size:.7rem;font-weight:800;padding:4px 12px;border-radius:99px;',
+              'background:rgba(21,101,192,.12);border:1px solid rgba(21,101,192,.25);color:#1565c0;">📌 مثبّت</span>',
+          '</div>',
+
+          // قائمة التحديثات
+          '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">',
+
+            _updCard('🎨','ثيمات جديدة — سماوي ورمادي',
+              'تمت إضافة ثيمين جديدين فاتحين: 🩵 السماوي بـ topbar أزرق مميز، و🌫️ الرمادي بمظهر corporate نظيف. الزر يدور بين 5 ثيمات.','#0369a1'),
+
+            _updCard('⭐','صفحة التقييم السلوكي',
+              'خانة جديدة كاملة لعرض تقييمات سلوك كل الطلاب مع تبويبات الفصول، فلاتر، KPIs، وإمكانية الطباعة والمشاركة لكل طالب أو فصل.','#7c3aed'),
+
+            _updCard('🔧','إصلاح حفظ التقييم السلوكي',
+              'كان التقييم لا يُحفظ على Firebase للطلاب الأساسيين. تم إنشاء مفتاح منفصل bs_admin_behaviors يحفظ تقييمات جميع الطلاب بدون استثناء.','#059669'),
+
+            _updCard('📲','نظام تثبيت PWA',
+              'تم تفعيل Service Worker وتحسين الـ Manifest. يظهر الآن بانر تلقائي عند أول زيارة للموقع يعرض خيار التثبيت على التاسك بار.','#1565c0'),
+
+            _updCard('🌗','إصلاح الثيمات الجديدة',
+              'إصلاح مشكلة عدم تطبيق ثيمي السماوي والرمادي بسبب بقاء أسماء قديمة (rose/mint) في الكود. وإصلاح دوران الثيمات في الزر.','#f59e0b'),
+
+            _updCard('🖊️','نصوص الـ Topbar',
+              'إصلاح ظهور النصوص باللون الأبيض في ثيمي السماوي والرمادي وتحويلها للون الأسود المناسب مع الخلفية الفاتحة.','#374151'),
+
+          '</div>',
+
+          // footer
+          '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);',
+            'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">',
+            '<span style="font-size:.74rem;color:var(--muted);">🛠️ تم التطوير بالتعاون مع Claude AI — جميع التحديثات مطبّقة وجاهزة</span>',
+            '<span style="font-size:.72rem;font-weight:800;padding:3px 12px;border-radius:99px;',
+              'background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.25);color:#059669;">✅ 6 تحديثات</span>',
+          '</div>',
+
+        '</div>',
+      '</div>',
+    ].join('');
 
     var prioColor = {عادي:'#10b981',متوسط:'#f59e0b',عاجل:'#ef4444'};
     var prioIcon  = {عادي:'🟢',متوسط:'🟡',عاجل:'🔴'};
 
-    grid.innerHTML = rems.map(function(r){
+    if(!rems.length){
+      grid.innerHTML = updateCard;
+      return;
+    }
+
+    grid.innerHTML = updateCard + rems.map(function(r){
       var isToday   = r.date===today;
       var isPast    = r.date<today && !r.done;
       var accentClr = r.done ? '#94a3b8' : (isPast?'#ef4444': (isToday?'#f59e0b': '#1565c0'));
@@ -14870,6 +15047,20 @@ window.runGlobalSearch = function(){
       +'</div>';
     }).join('');
   };
+
+  // helper — بطاقة تحديث واحدة
+  function _updCard(icon, title, desc, color){
+    return [
+      '<div style="background:rgba(255,255,255,.60);border:1px solid rgba(255,255,255,.80);border-radius:12px;padding:12px 14px;',
+        'border-right:3px solid '+color+';">',
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">',
+          '<span style="font-size:1rem;">'+icon+'</span>',
+          '<span style="font-size:.82rem;font-weight:800;color:var(--ink);">'+title+'</span>',
+        '</div>',
+        '<div style="font-size:.76rem;color:var(--muted);line-height:1.55;">'+desc+'</div>',
+      '</div>',
+    ].join('');
+  }
 
   function updateReminderBadge(){
     var rems  = getRem();
@@ -16010,9 +16201,299 @@ document.addEventListener('click', function(e){
   }
 });
 
-// ════════════════════════════════════════════════
-// 📲 PWA — Progressive Web App
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// ⭐ صفحة التقييم السلوكي — Behavior Page
+// ════════════════════════════════════════════════════════════════
+var _behActiveClass = 'all';
+
+/* ألوان الأفاتار حسب الفصل */
+function _behAvatarColor(cls){
+  var colors=[
+    ['#dbeafe','#1d4ed8'],['#fce7f3','#9d174d'],['#d1fae5','#065f46'],
+    ['#fef3c7','#92400e'],['#ede9fe','#5b21b6'],['#fee2e2','#991b1b'],
+    ['#e0f2fe','#0369a1'],['#f0fdf4','#166534'],['#fff7ed','#9a3412'],
+  ];
+  var idx=0; for(var i=0;i<cls.length;i++) idx+=cls.charCodeAt(i);
+  var c=colors[idx%colors.length];
+  return 'background:'+c[0]+';color:'+c[1]+';';
+}
+
+/* نجوم */
+function _behStarsHtml(n,size){
+  size=size||'1.1rem';
+  var h='';
+  for(var i=1;i<=5;i++) h+='<span class="beh-star'+(i<=n?' on':'')+'">⭐</span>';
+  return h;
+}
+
+/* ليبل النجوم */
+function _behStarsLabel(n){
+  return ['—','يحتاج متابعة','يحتاج تحسين','جيد','ممتاز','ممتاز جداً'][n]||'—';
+}
+
+/* لون badge حسب النجوم */
+function _behStarsBadge(n){
+  if(!n) return 'rgba(0,0,0,.06)';
+  if(n>=4) return 'rgba(16,185,129,.15)';
+  if(n===3) return 'rgba(245,158,11,.15)';
+  return 'rgba(239,68,68,.15)';
+}
+
+/* الرندر الرئيسي */
+window.renderBehPage = function(){
+  var all       = getStudents();
+  var search    = (document.getElementById('behSearch')||{}).value||'';
+  var fStars    = (document.getElementById('behFilterStars')||{}).value||'';
+  var fClass    = (document.getElementById('behFilterClass')||{}).value||'';
+  var fSort     = (document.getElementById('behFilterSort')||{}).value||'name';
+
+  /* ── تبويبات الفصول ── */
+  var classes = [...new Set(all.map(s=>s.class||s.cls||'').filter(Boolean))].sort();
+  var tabsEl  = document.getElementById('behClassTabs');
+  if(tabsEl){
+    var tabHtml = '<div class="beh-class-tab'+((_behActiveClass==='all')?' active':'')+'" onclick="behSetClass(\'all\')">🏫 الكل ('+all.length+')</div>';
+    classes.forEach(function(c){
+      var cnt=all.filter(function(s){return (s.class||s.cls||s.className||'')===c;}).length;
+      tabHtml+='<div class="beh-class-tab'+((_behActiveClass===c)?' active':'')+'" onclick="behSetClass(\''+c+'\')">'+c+' ('+cnt+')</div>';
+    });
+    tabsEl.innerHTML=tabHtml;
+  }
+
+  /* ── ملء فلتر الفصل ── */
+  var selCls=document.getElementById('behFilterClass');
+  if(selCls && selCls.options.length<=1){
+    classes.forEach(function(c){
+      var o=document.createElement('option');o.value=c;o.textContent=c;selCls.appendChild(o);
+    });
+  }
+
+  /* ── تصفية ── */
+  var filtered = all.filter(function(s){
+    var cls = s.class||s.cls||s.className||'';
+    var beh = s.adm_behavior||{};
+    var stars= beh.stars||0;
+    if(_behActiveClass!=='all' && cls!==_behActiveClass) return false;
+    if(fClass && cls!==fClass) return false;
+    if(search && !(s.name||'').includes(search)) return false;
+    if(fStars!==''){
+      var fs=parseInt(fStars);
+      if(fs===0 && stars>0) return false;
+      if(fs>0  && stars!==fs) return false;
+    }
+    return true;
+  });
+
+  /* ── ترتيب ── */
+  filtered.sort(function(a,b){
+    var aS=a.adm_behavior?.stars||0, bS=b.adm_behavior?.stars||0;
+    if(fSort==='stars_desc') return bS-aS;
+    if(fSort==='stars_asc')  return aS-bS;
+    if(fSort==='class')      return (a.class||a.cls||'').localeCompare(b.class||b.cls||'','ar');
+    return (a.name||'').localeCompare(b.name||'','ar');
+  });
+
+  /* ── KPIs ── */
+  var kAll=filtered.length;
+  var kGood=filtered.filter(function(s){return (s.adm_behavior?.stars||0)>=4;}).length;
+  var kMid =filtered.filter(function(s){return (s.adm_behavior?.stars||0)===3;}).length;
+  var kBad =filtered.filter(function(s){var st=s.adm_behavior?.stars||0;return st>0&&st<=2;}).length;
+  ['behKpiTotal','behKpiGood','behKpiMid','behKpiBad'].forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(el) el.textContent=[kAll,kGood,kMid,kBad][i];
+  });
+
+  /* ── subtext ── */
+  var sub=document.getElementById('behPageSub');
+  if(sub){
+    var evalCnt=filtered.filter(function(s){return (s.adm_behavior?.stars||0)>0;}).length;
+    sub.textContent='إجمالي '+kAll+' طالب — تم تقييم '+evalCnt+' طالب'+(_behActiveClass!=='all'?' — فصل: '+_behActiveClass:'');
+  }
+  /* nav badge */
+  var nb=document.getElementById('sideBehCount');
+  if(nb) nb.textContent=all.filter(function(s){return (s.adm_behavior?.stars||0)>0;}).length;
+
+  /* ── الشبكة ── */
+  var grid=document.getElementById('behGrid');
+  if(!grid) return;
+
+  if(!filtered.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-size:3rem;margin-bottom:12px">🔍</div><div style="font-size:1rem;font-weight:700;">لا توجد نتائج</div></div>';
+    return;
+  }
+
+  var POS_TAGS=['منضبط','متعاون','مجتهد','محترم','مبدع','قيادي','صبور','ودود'];
+  var NEG_TAGS=['كثير الغياب','مشاغب','يحتاج تحسين','يشتت الآخرين'];
+
+  grid.innerHTML=filtered.map(function(s){
+    var beh   = s.adm_behavior||{};
+    var stars = beh.stars||0;
+    var tags  = beh.tags||[];
+    var notes = beh.notes||'';
+    var cls   = s.class||s.cls||s.className||'—';
+    var initials=(s.name||'?').trim().split(' ').map(function(w){return w[0];}).slice(0,2).join('');
+    var avgColor=_behAvatarColor(cls);
+    var badgeBg=_behStarsBadge(stars);
+
+    var tagsHtml=tags.map(function(t){
+      var isPos=POS_TAGS.includes(t);
+      return '<span class="beh-tag-pill '+(isPos?'pos':'neg')+'">'+t+'</span>';
+    }).join('');
+
+    return [
+      '<div class="beh-card'+(stars===0?' no-eval':'')+'" id="behcard-'+s.id+'" style="border-top:3px solid '+_behStarColor(stars)+';">',
+        '<div style="position:absolute;top:10px;left:12px;font-size:.7rem;padding:3px 9px;border-radius:99px;background:'+badgeBg+';font-weight:800;color:'+(stars===0?'var(--muted)':stars>=4?'#059669':stars===3?'#92400e':'#dc2626')+';">',
+          stars===0?'غير مُقيَّم':_behStarsLabel(stars),
+        '</div>',
+        '<div class="beh-card-top" style="margin-top:18px;">',
+          '<div class="beh-avatar" style="'+avgColor+'">'+initials+'</div>',
+          '<div><div class="beh-card-name">'+s.name+'</div><div class="beh-card-class">'+cls+'</div></div>',
+        '</div>',
+        stars>0?'<div class="beh-stars-row">'+_behStarsHtml(stars)+'</div>':'',
+        tagsHtml?'<div class="beh-tags-row">'+tagsHtml+'</div>':'',
+        notes?'<div class="beh-notes">'+notes+'</div>':'',
+        stars===0?'<div class="beh-no-eval">لم يتم التقييم بعد</div>':'',
+        '<div class="beh-card-actions">',
+          '<button class="beh-card-btn" onclick="openAdmBeh(\''+s.id+'\')">✏️ تقييم</button>',
+          '<button class="beh-card-btn share" onclick="behShareStudent(\''+s.id+'\')">📤 مشاركة</button>',
+          '<button class="beh-card-btn" onclick="behPrintStudent(\''+s.id+'\')">🖨️ طباعة</button>',
+        '</div>',
+      '</div>'
+    ].join('');
+  }).join('');
+};
+
+function _behStarColor(n){
+  if(!n) return 'var(--border)';
+  if(n>=4) return '#10b981';
+  if(n===3) return '#f59e0b';
+  return '#ef4444';
+}
+
+window.behSetClass = function(cls){
+  _behActiveClass=cls;
+  renderBehPage();
+};
+
+/* ── طباعة طالب واحد ── */
+window.behPrintStudent = function(id){
+  var s = getStudents().find(function(x){return x.id===id;});
+  if(!s) return;
+  var beh=s.adm_behavior||{};
+  var stars=beh.stars||0;
+  var tags=(beh.tags||[]).join('، ');
+  var w=window.open('','_blank','width=700,height=800');
+  w.document.write([
+    '<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8">',
+    '<title>تقييم سلوك — '+s.name+'</title>',
+    '<style>',
+      'body{font-family:Tajawal,Arial,sans-serif;direction:rtl;padding:32px;color:#111;max-width:600px;margin:auto;}',
+      'h1{font-size:1.4rem;border-bottom:2px solid #1565c0;padding-bottom:10px;color:#1565c0;}',
+      '.row{margin:12px 0;font-size:.95rem;}',
+      '.lbl{font-weight:800;color:#333;min-width:120px;display:inline-block;}',
+      '.stars{font-size:1.3rem;}',
+      '.tag{display:inline-block;padding:3px 10px;border-radius:99px;border:1px solid #ccc;margin:2px;font-size:.8rem;}',
+      '.notes-box{background:#f8f9fa;border-right:4px solid #1565c0;padding:12px;border-radius:8px;margin-top:12px;font-size:.9rem;line-height:1.7;}',
+      '.footer{margin-top:40px;font-size:.78rem;color:#888;border-top:1px solid #eee;padding-top:12px;}',
+    '</style></head><body>',
+    '<h1>⭐ التقييم السلوكي</h1>',
+    '<div class="row"><span class="lbl">اسم الطالب:</span> '+s.name+'</div>',
+    '<div class="row"><span class="lbl">الفصل:</span> '+(s.class||s.cls||'—')+'</div>',
+    '<div class="row"><span class="lbl">التقييم:</span> <span class="stars">'+'⭐'.repeat(stars)+'</span> '+_behStarsLabel(stars)+'</div>',
+    tags?'<div class="row"><span class="lbl">التوصيفات:</span> '+tags+'</div>':'',
+    beh.notes?'<div class="notes-box">'+beh.notes+'</div>':'',
+    '<div class="footer">تاريخ التقييم: '+(beh.updatedAt?new Date(beh.updatedAt).toLocaleDateString('ar-SA'):'—')+'<br>مدارس البشرى الأهلية — نظام الإرشاد الطلابي</div>',
+    '</body></html>'
+  ].join(''));
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+};
+
+/* ── طباعة الفصل الحالي ── */
+window.behPrintCurrent = function(){
+  var all=getStudents();
+  var filtered=_behActiveClass==='all'?all:all.filter(function(s){return (s.class||s.cls||s.className||'')===_behActiveClass;});
+  var w=window.open('','_blank','width=900,height=800');
+  var rows=filtered.map(function(s){
+    var beh=s.adm_behavior||{};
+    var stars=beh.stars||0;
+    return '<tr><td>'+s.name+'</td><td>'+(s.class||s.cls||'—')+'</td><td>'+'⭐'.repeat(stars)+(stars?'':' —')+'</td><td>'+_behStarsLabel(stars)+'</td><td>'+((beh.tags||[]).join('، '))+'</td><td>'+(beh.notes||'—')+'</td></tr>';
+  }).join('');
+  var title=_behActiveClass==='all'?'كشف التقييم السلوكي — جميع الفصول':'كشف التقييم السلوكي — فصل '+_behActiveClass;
+  w.document.write([
+    '<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>'+title+'</title>',
+    '<style>body{font-family:Tajawal,Arial,sans-serif;direction:rtl;padding:24px;color:#111;}',
+    'h1{font-size:1.2rem;color:#1565c0;border-bottom:2px solid #1565c0;padding-bottom:8px;}',
+    'table{width:100%;border-collapse:collapse;font-size:.82rem;}',
+    'th{background:#1565c0;color:#fff;padding:9px 10px;text-align:right;}',
+    'td{padding:8px 10px;border-bottom:1px solid #e5e7eb;}',
+    'tr:nth-child(even){background:#f9fafb;}',
+    '.footer{margin-top:24px;font-size:.75rem;color:#888;border-top:1px solid #eee;padding-top:10px;}',
+    '</style></head><body>',
+    '<h1>'+title+'</h1>',
+    '<p style="font-size:.82rem;color:#666;">إجمالي '+filtered.length+' طالب — تاريخ الطباعة: '+new Date().toLocaleDateString('ar-SA')+'</p>',
+    '<table><thead><tr><th>اسم الطالب</th><th>الفصل</th><th>التقييم</th><th>المستوى</th><th>التوصيفات</th><th>الملاحظات</th></tr></thead>',
+    '<tbody>'+rows+'</tbody></table>',
+    '<div class="footer">مدارس البشرى الأهلية — نظام الإرشاد الطلابي</div>',
+    '</body></html>'
+  ].join(''));
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+};
+
+/* ── مشاركة طالب واحد (نص) ── */
+window.behShareStudent = function(id){
+  var s=getStudents().find(function(x){return x.id===id;});
+  if(!s) return;
+  var beh=s.adm_behavior||{};
+  var stars=beh.stars||0;
+  var text=[
+    '📋 التقييم السلوكي — مدارس البشرى الأهلية',
+    '━━━━━━━━━━━━━━━━━━━━',
+    '👤 الطالب: '+s.name,
+    '🏫 الفصل: '+(s.class||s.cls||'—'),
+    '⭐ التقييم: '+'⭐'.repeat(stars)+' ('+_behStarsLabel(stars)+')',
+    (beh.tags||[]).length?'🏷️ التوصيفات: '+(beh.tags||[]).join('، '):'',
+    beh.notes?'📝 الملاحظات: '+beh.notes:'',
+    '━━━━━━━━━━━━━━━━━━━━',
+    '📅 '+new Date().toLocaleDateString('ar-SA')
+  ].filter(Boolean).join('\n');
+
+  if(navigator.share){
+    navigator.share({title:'تقييم سلوك — '+s.name, text:text})
+      .catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      toast('✅ تم نسخ التقييم — الصقه في واتساب أو أي تطبيق','success');
+    });
+  }
+};
+
+/* ── مشاركة الفصل كاملاً ── */
+window.behShareCurrent = function(){
+  var all=getStudents();
+  var filtered=_behActiveClass==='all'?all:all.filter(function(s){return (s.class||s.cls||s.className||'')===_behActiveClass;});
+  var title=_behActiveClass==='all'?'كشف التقييم السلوكي — جميع الطلاب':'كشف التقييم السلوكي — فصل '+_behActiveClass;
+  var lines=[
+    '📋 '+title+' — مدارس البشرى الأهلية',
+    '━━━━━━━━━━━━━━━━━━━━',
+  ];
+  filtered.forEach(function(s,i){
+    var beh=s.adm_behavior||{};
+    var stars=beh.stars||0;
+    lines.push((i+1)+'. '+s.name+' | '+(s.class||s.cls||'—')+' | '+'⭐'.repeat(stars||0)+(stars?'':' (غير مُقيَّم)')+' | '+_behStarsLabel(stars));
+  });
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push('📅 '+new Date().toLocaleDateString('ar-SA')+' — إجمالي '+filtered.length+' طالب');
+  var text=lines.join('\n');
+
+  if(navigator.share){
+    navigator.share({title:title, text:text}).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      toast('✅ تم نسخ كشف الفصل كاملاً — الصقه في واتساب','success');
+    });
+  }
+};
 var _pwaPrompt = null;
 var _pwaBannerShown = false;
 
