@@ -51,69 +51,15 @@
 })();
 </script>
 
-<!-- Service Worker (inline via blob) -->
+<!-- Service Worker registration for GitHub Pages -->
 <script>
 (function(){
   if(!('serviceWorker' in navigator)) return;
-
-  // كود الـ Service Worker — Cache-first strategy
-  var swCode = `
-const CACHE = 'bushra-admin-v1';
-const OFFLINE_URL = self.location.href;
-
-self.addEventListener('install', function(e){
-  e.waitUntil(
-    caches.open(CACHE).then(function(cache){
-      return cache.addAll([OFFLINE_URL]);
-    }).catch(function(){})
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', function(e){
-  e.waitUntil(
-    caches.keys().then(function(keys){
-      return Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
-    })
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', function(e){
-  if(e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(function(cached){
-      if(cached) return cached;
-      return fetch(e.request).then(function(response){
-        if(response && response.status === 200 && response.type === 'basic'){
-          var clone = response.clone();
-          caches.open(CACHE).then(function(cache){ cache.put(e.request, clone); });
-        }
-        return response;
-      }).catch(function(){
-        return caches.match(OFFLINE_URL);
-      });
-    })
-  );
-});
-`;
-
-  try {
-    var blob = new Blob([swCode], {type:'application/javascript'});
-    var swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl, {scope: '/'})
-      .then(function(reg){
-        console.log('[SW] Registered:', reg.scope);
-      })
-      .catch(function(err){
-        // blob: scope restriction — try with current path
-        navigator.serviceWorker.register(swUrl)
-          .then(function(reg){ console.log('[SW] Registered (fallback):', reg.scope); })
-          .catch(function(e2){ console.warn('[SW] Registration failed:', e2.message); });
-      });
-  } catch(e){
-    console.warn('[SW] Blob SW failed:', e.message);
-  }
+  // sw.js موجود في نفس الـ repo على GitHub Pages
+  var swPath = (location.pathname.replace(/\/[^/]*$/, '') || '') + '/sw.js';
+  navigator.serviceWorker.register(swPath)
+    .then(function(reg){ console.log('[SW] ✅ Registered:', reg.scope); })
+    .catch(function(err){ console.warn('[SW] ❌ Failed:', err.message); });
 })();
 </script>
 
@@ -15012,11 +14958,12 @@ document.addEventListener('DOMContentLoaded', function(){
   setTimeout(window.checkHighAbsenceAlert, 500);
 });
 
-// تحديث حالة PWA بعد تحميل الصفحة
+// تحديث حالة PWA بعد تحميل الصفحة — مع retry لأن الـ prompt ممكن يتأخر
 document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    if(typeof _updatePwaStatusBox === 'function') _updatePwaStatusBox();
-  }, 800);
+  // محاولة أولى بعد ثانية
+  setTimeout(function(){ if(typeof _updatePwaStatusBox==='function') _updatePwaStatusBox(); }, 1000);
+  // محاولة ثانية بعد 3 ثواني (بعد ما المتصفح يقرر)
+  setTimeout(function(){ if(typeof _updatePwaStatusBox==='function') _updatePwaStatusBox(); }, 3000);
 });
 
 // ════════════════════════════════════════════════
@@ -16067,19 +16014,129 @@ document.addEventListener('click', function(e){
 // 📲 PWA — Progressive Web App
 // ════════════════════════════════════════════════
 var _pwaPrompt = null;
+var _pwaBannerShown = false;
 
+/* ── CSS البانر ── */
+(function(){
+  var s = document.createElement('style');
+  s.textContent = [
+    '#pwaBanner{',
+      'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);',
+      'z-index:99999;width:min(460px,calc(100vw - 32px));',
+      'background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);',
+      'border:1.5px solid rgba(21,101,192,.22);border-radius:20px;',
+      'box-shadow:0 8px 40px rgba(0,0,0,.18),0 2px 8px rgba(21,101,192,.12),0 0 0 1px rgba(255,255,255,.8) inset;',
+      'padding:18px 20px;display:flex;align-items:center;gap:14px;',
+      'transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .35s ease;opacity:0;',
+      'font-family:inherit;direction:rtl;',
+    '}',
+    '#pwaBanner.show{transform:translateX(-50%) translateY(0);opacity:1;}',
+    '#pwaBanner .pwa-icon{',
+      'width:52px;height:52px;border-radius:14px;flex-shrink:0;',
+      'background:linear-gradient(135deg,#1565c0,#1e88e5);',
+      'display:flex;align-items:center;justify-content:center;font-size:26px;',
+      'box-shadow:0 4px 14px rgba(21,101,192,.35);',
+    '}',
+    '#pwaBanner .pwa-body{flex:1;min-width:0;}',
+    '#pwaBanner .pwa-title{font-size:.92rem;font-weight:800;color:#0d2545;margin-bottom:3px;}',
+    '#pwaBanner .pwa-sub{font-size:.78rem;color:#5a7a9e;line-height:1.4;}',
+    '#pwaBanner .pwa-actions{display:flex;flex-direction:column;gap:7px;flex-shrink:0;}',
+    '#pwaBanner .pwa-btn-install{',
+      'background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;border:none;',
+      'border-radius:10px;padding:9px 18px;font-size:.82rem;font-weight:700;',
+      'cursor:pointer;white-space:nowrap;font-family:inherit;',
+      'box-shadow:0 3px 10px rgba(21,101,192,.35);',
+      'transition:transform .15s,box-shadow .15s;',
+    '}',
+    '#pwaBanner .pwa-btn-install:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(21,101,192,.50);}',
+    '#pwaBanner .pwa-btn-later{',
+      'background:none;border:1.5px solid rgba(21,101,192,.20);color:#5a7a9e;',
+      'border-radius:10px;padding:7px 18px;font-size:.78rem;font-weight:600;',
+      'cursor:pointer;font-family:inherit;transition:background .15s;',
+    '}',
+    '#pwaBanner .pwa-btn-later:hover{background:rgba(21,101,192,.06);}',
+    /* dark mode */
+    'body.dark #pwaBanner{background:rgba(10,20,50,.96);border-color:rgba(0,212,255,.25);}',
+    'body.dark #pwaBanner .pwa-title{color:#e0eaff;}',
+    'body.dark #pwaBanner .pwa-sub{color:#7a9cc4;}',
+    'body.dark #pwaBanner .pwa-btn-later{border-color:rgba(0,212,255,.25);color:#7a9cc4;}',
+    /* theme-sky */
+    'body.theme-sky #pwaBanner{background:rgba(224,242,254,.97);border-color:rgba(3,105,161,.25);}',
+    /* theme-slate */
+    'body.theme-slate #pwaBanner{background:rgba(249,250,251,.98);border-color:rgba(55,65,81,.20);}',
+    'body.theme-slate #pwaBanner .pwa-title{color:#111827;}',
+    'body.theme-slate #pwaBanner .pwa-sub{color:#6b7280;}',
+  ].join('');
+  document.head.appendChild(s);
+
+  /* إنشاء البانر */
+  var div = document.createElement('div');
+  div.id = 'pwaBanner';
+  div.innerHTML = [
+    '<div class="pwa-icon">🏫</div>',
+    '<div class="pwa-body">',
+      '<div class="pwa-title">تثبيت تطبيق مدارس البشرى</div>',
+      '<div class="pwa-sub">ثبّت التطبيق للوصول السريع من التاسك بار بدون فتح المتصفح</div>',
+    '</div>',
+    '<div class="pwa-actions">',
+      '<button class="pwa-btn-install" onclick="window._pwaBannerInstall()">📲 تثبيت</button>',
+      '<button class="pwa-btn-later"   onclick="window._pwaBannerLater()">لاحقاً</button>',
+    '</div>',
+  ].join('');
+  document.body ? document.body.appendChild(div)
+    : document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(div); });
+})();
+
+/* ── إظهار / إخفاء البانر ── */
+function _showPwaBanner(){
+  if(_pwaBannerShown) return;
+  var banner = document.getElementById('pwaBanner');
+  if(!banner) return;
+  _pwaBannerShown = true;
+  // تأخير بسيط عشان الصفحة تتحمل أول
+  setTimeout(function(){ banner.classList.add('show'); }, 2200);
+}
+function _hidePwaBanner(){
+  var banner = document.getElementById('pwaBanner');
+  if(!banner) return;
+  banner.classList.remove('show');
+  setTimeout(function(){ banner.style.display = 'none'; }, 450);
+}
+
+window._pwaBannerInstall = function(){
+  _hidePwaBanner();
+  window.installPwa();
+};
+window._pwaBannerLater = function(){
+  _hidePwaBanner();
+  // حفظ "لاحقاً" لمدة 3 أيام
+  try{ localStorage.setItem('pwa_later', Date.now() + 3*24*60*60*1000); }catch(e){}
+  toast('يمكنك التثبيت لاحقاً من صفحة الأدوات السريعة ⚙️','info');
+};
+
+/* ── التقاط الـ prompt ── */
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   _pwaPrompt = e;
   window._deferredPwaPrompt = e;
-  // أظهر زر التثبيت الفوري في كل الأماكن
+  console.log('[PWA] ✅ Install prompt captured');
+
+  // تحقق من "لاحقاً" المحفوظ
+  var later = 0;
+  try{ later = parseInt(localStorage.getItem('pwa_later')||'0'); }catch(e){}
+  var isInstalled = window.matchMedia('(display-mode: standalone)').matches
+                 || window.navigator.standalone === true;
+
+  if(!isInstalled && Date.now() > later){
+    _showPwaBanner();
+  }
+
+  // أظهر الأزرار في صفحة الأدوات
   ['btnInstallPwa','qtBtnInstall'].forEach(function(id){
     var btn = document.getElementById(id);
-    if(btn) btn.style.display = 'block';
+    if(btn){ btn.style.display='block'; btn.style.opacity='1'; btn.disabled=false; }
   });
-  // حدّث صندوق الحالة
   _updatePwaStatusBox();
-  console.log('[PWA] Install prompt available');
 });
 
 function _updatePwaStatusBox(){
@@ -16087,34 +16144,49 @@ function _updatePwaStatusBox(){
   var text = document.getElementById('pwaStatusText');
   if(!box || !text) return;
 
-  if(window.matchMedia('(display-mode: standalone)').matches){
+  var isInstalled = window.matchMedia('(display-mode: standalone)').matches
+                 || window.navigator.standalone === true;
+
+  if(isInstalled){
     box.style.background  = 'rgba(16,185,129,.08)';
     box.style.borderColor = 'rgba(16,185,129,.30)';
     text.innerHTML = '✅ <strong>التطبيق مثبّت ويعمل بوضع مستقل</strong><br><span style="color:var(--muted)">يمكنك إغلاق المتصفح والتطبيق سيبقى في قائمة التطبيقات</span>';
     var btn = document.getElementById('qtBtnInstall');
     if(btn){ btn.textContent = '✅ مثبّت بالفعل'; btn.disabled = true; btn.style.display = 'block'; btn.style.opacity = '0.6'; }
   } else if(_pwaPrompt){
-    box.style.background  = 'rgba(21,101,192,.06)';
-    box.style.borderColor = 'rgba(21,101,192,.25)';
-    text.innerHTML = '👆 <strong>جاهز للتثبيت!</strong> اضغط الزر الأزرق أدناه لتثبيت التطبيق على كمبيوترك<br><span style="color:var(--muted)">سيعمل كتطبيق مستقل بدون الحاجة لفتح المتصفح</span>';
+    box.style.background  = 'rgba(21,101,192,.08)';
+    box.style.borderColor = 'rgba(21,101,192,.35)';
+    text.innerHTML = '🚀 <strong>جاهز للتثبيت!</strong> اضغط الزر أدناه لتثبيت التطبيق على جهازك<br><span style="color:var(--muted)">سيعمل كتطبيق مستقل بأيقونة في التاسك بار</span>';
     var btn = document.getElementById('qtBtnInstall');
-    if(btn){ btn.style.display = 'block'; btn.disabled = false; btn.style.opacity = '1'; }
+    if(btn){ btn.style.display = 'block'; btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '📲 تثبيت التطبيق الآن'; }
+    var btn2 = document.getElementById('btnInstallPwa');
+    if(btn2){ btn2.style.display = 'block'; }
   } else {
-    box.style.background  = 'rgba(21,101,192,.06)';
-    box.style.borderColor = 'rgba(21,101,192,.18)';
-    text.innerHTML = '📌 <strong>اتبع الخطوات اليدوية أدناه لتثبيت التطبيق</strong>';
+    // لم يصل الـ prompt بعد — اشرح السبب
+    box.style.background  = 'rgba(245,158,11,.07)';
+    box.style.borderColor = 'rgba(245,158,11,.30)';
+    text.innerHTML = [
+      '⏳ <strong>زر التثبيت التلقائي غير متاح حالياً</strong><br>',
+      '<span style="color:var(--muted);font-size:.82rem;">',
+      'ممكن يكون السبب: سبق تثبيت التطبيق أو رفضه، أو المتصفح لم يقرر بعد.<br>',
+      'جرب <strong>إغلاق وإعادة فتح المتصفح</strong> أو اتبع التثبيت اليدوي أدناه.',
+      '</span>'
+    ].join('');
   }
 }
 
 window.installPwa = function(){
   if(!_pwaPrompt){
+    toast('🔄 جرب إعادة فتح الصفحة أو استخدم التثبيت اليدوي من شريط العنوان ＋','info');
     _updatePwaStatusBox();
     return;
   }
   _pwaPrompt.prompt();
   _pwaPrompt.userChoice.then(function(r){
     if(r.outcome === 'accepted'){
-      toast('✅ تم تثبيت التطبيق بنجاح','success');
+      toast('✅ تم تثبيت التطبيق بنجاح! ابحث عنه في التاسك بار','success');
+    } else {
+      toast('تم إلغاء التثبيت — يمكنك إعادة المحاولة لاحقاً','info');
     }
     _pwaPrompt = null;
     window._deferredPwaPrompt = null;
@@ -16127,8 +16199,10 @@ window.installPwa = function(){
 };
 
 window.addEventListener('appinstalled', function(){
-  toast('✅ تم تثبيت التطبيق بنجاح','success');
+  toast('✅ تم تثبيت التطبيق بنجاح! ابحث عنه في التاسك بار','success');
+  _hidePwaBanner();
   _pwaPrompt = null;
+  window._deferredPwaPrompt = null;
   _updatePwaStatusBox();
 });
 
