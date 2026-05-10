@@ -1964,102 +1964,118 @@ body.theme-slate .topbar-badge .live-dot { background:#6b7280; box-shadow:0 0 6p
    ═══════════════════════════════════════════ */
 #splashScreen{
   position:fixed;inset:0;z-index:99999;
-  background:linear-gradient(160deg,#0d1b2a 0%,#1e3a5f 50%,#0d1b2a 100%);
+  background:#0a0f1e;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   transition:opacity .7s ease,visibility .7s ease;
+  overflow:hidden;
 }
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
+/* خلفية */
 .splash-bg-orbs{position:absolute;inset:0;overflow:hidden;pointer-events:none}
-.splash-orb{position:absolute;border-radius:50%;filter:blur(70px);animation:orbFloat 7s ease-in-out infinite}
-.splash-orb:nth-child(1){width:380px;height:380px;background:rgba(21,101,192,.35);top:-100px;right:-80px;animation-delay:0s}
-.splash-orb:nth-child(2){width:320px;height:320px;background:rgba(124,58,237,.28);bottom:-80px;left:-60px;animation-delay:2.5s}
-.splash-orb:nth-child(3){width:220px;height:220px;background:rgba(16,185,129,.18);top:40%;left:60%;animation-delay:4.5s}
-@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+.splash-orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbFloat 9s ease-in-out infinite}
+.splash-orb:nth-child(1){width:450px;height:450px;background:rgba(99,102,241,.12);top:-120px;right:-120px;animation-delay:0s}
+.splash-orb:nth-child(2){width:380px;height:380px;background:rgba(21,101,192,.10);bottom:-100px;left:-100px;animation-delay:3s}
+.splash-orb:nth-child(3){width:260px;height:260px;background:rgba(139,92,246,.08);top:38%;left:55%;animation-delay:5.5s}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+/* شبكة خفية */
+.splash-bg-orbs::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(99,102,241,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(99,102,241,.035) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 20%,transparent 100%);
+}
 
 .splash-content{
   position:relative;z-index:2;
   display:flex;flex-direction:column;align-items:center;
 }
 
+/* الصورة / الشعار */
 .splash-logo-wrap{
-  position:relative;width:128px;height:128px;margin-bottom:28px;
-  animation:splashLogoIn .9s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;width:130px;height:130px;margin-bottom:28px;
+  animation:splashLogoIn .85s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes splashLogoIn{from{opacity:0;transform:scale(.3) rotate(-15deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes splashLogoIn{from{opacity:0;transform:scale(.25)}to{opacity:1;transform:scale(1)}}
 
 .splash-logo-circle{
-  width:128px;height:128px;border-radius:50%;
-  background:linear-gradient(135deg,#1565c0 0%,#7c3aed 100%);
-  border:3px solid rgba(255,255,255,.22);
+  width:130px;height:130px;border-radius:50%;
+  background:linear-gradient(145deg,#1e1b4b 0%,#312e81 50%,#1d4ed8 100%);
+  border:3px solid rgba(99,102,241,.35);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 0 10px rgba(21,101,192,.12),0 0 70px rgba(21,101,192,.45);
+  box-shadow:0 0 0 10px rgba(99,102,241,.08),0 0 60px rgba(79,70,229,.30);
   overflow:hidden;
 }
 .splash-logo-circle img{width:100%;height:100%;object-fit:cover}
 .splash-logo-emoji{font-size:3.2rem;color:white}
 
-/* دائرة دوّارة */
+/* حلقات دوّارة */
 .splash-ring{
   position:absolute;inset:-10px;border-radius:50%;
   border:2px solid transparent;
-  border-top-color:rgba(21,101,192,.70);
-  border-right-color:rgba(124,58,237,.50);
-  animation:spinRing 2.5s linear infinite;
+  border-top-color:rgba(99,102,241,.65);
+  border-right-color:rgba(79,70,229,.40);
+  animation:spinRing 2.8s linear infinite;
 }
 .splash-ring2{
-  position:absolute;inset:-18px;border-radius:50%;
+  position:absolute;inset:-20px;border-radius:50%;
   border:1.5px solid transparent;
-  border-bottom-color:rgba(16,185,129,.40);
-  border-left-color:rgba(21,101,192,.30);
-  animation:spinRing 4s linear infinite reverse;
+  border-bottom-color:rgba(21,101,192,.35);
+  border-left-color:rgba(99,102,241,.20);
+  animation:spinRing 5s linear infinite reverse;
 }
 @keyframes spinRing{to{transform:rotate(360deg)}}
 
+/* نصوص */
 .splash-school{
   font-family:'Amiri',serif;font-size:1.55rem;font-weight:700;
-  color:rgba(255,255,255,.95);margin-bottom:4px;letter-spacing:.3px;
-  animation:splashFadeUp .6s ease .25s both;
+  color:rgba(255,255,255,.92);margin-bottom:5px;letter-spacing:.3px;
+  animation:splashFadeUp .55s ease .20s both;
 }
 .splash-name{
-  font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.70);
+  font-size:.95rem;font-weight:700;color:rgba(255,255,255,.55);
   margin-bottom:3px;
-  animation:splashFadeUp .6s ease .40s both;
+  animation:splashFadeUp .55s ease .35s both;
 }
 .splash-role-txt{
-  font-size:.80rem;color:rgba(255,255,255,.40);font-weight:600;
-  margin-bottom:32px;
-  animation:splashFadeUp .6s ease .52s both;
+  font-size:.76rem;color:rgba(255,255,255,.30);font-weight:600;
+  margin-bottom:30px;letter-spacing:.5px;
+  animation:splashFadeUp .55s ease .48s both;
 }
-@keyframes splashFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
+/* شريط التقدم */
 .splash-progress-wrap{
-  width:180px;height:3px;background:rgba(255,255,255,.10);border-radius:99px;
-  overflow:hidden;animation:splashFadeUp .4s ease .65s both;
+  width:160px;height:2px;background:rgba(255,255,255,.08);border-radius:99px;
+  overflow:hidden;animation:splashFadeUp .4s ease .60s both;
 }
 .splash-progress-bar{
   height:100%;border-radius:99px;
-  background:linear-gradient(90deg,#1976d2,#7c3aed,#42a5f5);
+  background:linear-gradient(90deg,#4f46e5,#818cf8,#4f46e5);
   background-size:200% 100%;
   width:0%;
   animation:progressFill 1.8s cubic-bezier(.4,0,.2,1) .4s forwards,
             progressShimmer 1.5s linear .4s infinite;
 }
-@keyframes progressFill{0%{width:0%}65%{width:72%}100%{width:100%}}
+@keyframes progressFill{0%{width:0%}65%{width:70%}100%{width:100%}}
 @keyframes progressShimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 
+/* نقاط */
 .splash-dots-row{
-  display:flex;gap:6px;margin-top:14px;
-  animation:splashFadeUp .4s ease .75s both;
+  display:flex;gap:7px;margin-top:16px;
+  animation:splashFadeUp .4s ease .70s both;
 }
 .splash-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:rgba(255,255,255,.30);
-  animation:dotBeat 1.4s ease-in-out infinite;
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,.20);
+  animation:dotBeat 1.5s ease-in-out infinite;
 }
-.splash-dot:nth-child(2){animation-delay:.2s}
-.splash-dot:nth-child(3){animation-delay:.4s}
-@keyframes dotBeat{0%,100%{opacity:.30;transform:scale(1)}50%{opacity:1;transform:scale(1.5);background:rgba(66,165,245,.90)}}
+.splash-dot:nth-child(2){animation-delay:.22s}
+.splash-dot:nth-child(3){animation-delay:.44s}
+@keyframes dotBeat{0%,100%{opacity:.20;transform:scale(1)}50%{opacity:1;transform:scale(1.6);background:rgba(99,102,241,.90)}}
 
 /* ═══════════════════════════════════════════════════
    🎯 صفحة الأنشطة والبرامج الإرشادية
@@ -2525,404 +2541,543 @@ window.showView = window.showView || function(n){
 </script>
 
 <!-- ═══ شاشة تحميل Firebase ═══ -->
-<div id="_fbLoader" style="
+<style>
+#_fbLoader {
   display:none;position:fixed;inset:0;z-index:999999;
-  background:rgba(13,27,42,.85);backdrop-filter:blur(8px);
-  align-items:center;justify-content:center;flex-direction:column;gap:18px;
+  background:#0a0f1e;
+  align-items:center;justify-content:center;flex-direction:column;gap:0;
   font-family:'Tajawal',sans-serif;direction:rtl;
-">
-  <div id="_fbLoaderIcon" style="font-size:3rem;animation:fbSpin 1.2s linear infinite;">🔥</div>
-  <div id="_fbLoaderMsg" style="color:white;font-size:1.1rem;font-weight:700;">جارٍ الاتصال بقاعدة البيانات...</div>
-  <div id="_fbLoaderSub" style="color:rgba(255,255,255,.55);font-size:.82rem;">يرجى الانتظار</div>
-  <button id="_fbRetryBtn" onclick="location.reload()" style="display:none;margin-top:8px;padding:10px 28px;background:#1565c0;color:white;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;">🔄 إعادة المحاولة</button>
-  <style>@keyframes fbSpin{0%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.2) rotate(10deg)}100%{transform:scale(1) rotate(0deg)}}</style>
+}
+.fbl-bg {
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 55% at 20% 25%, rgba(99,102,241,.14) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 75%, rgba(21,101,192,.12) 0%, transparent 58%);
+}
+.fbl-grid {
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
+}
+.fbl-content {
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.fbl-icon-wrap {
+  position:relative;width:72px;height:72px;margin-bottom:24px;
+}
+.fbl-icon-ring {
+  position:absolute;inset:-8px;border-radius:50%;
+  border:1.5px solid transparent;
+  border-top-color:rgba(99,102,241,.60);
+  border-right-color:rgba(79,70,229,.35);
+  animation:fblSpin 1.8s linear infinite;
+}
+.fbl-icon-ring2 {
+  position:absolute;inset:-16px;border-radius:50%;
+  border:1px solid transparent;
+  border-bottom-color:rgba(21,101,192,.30);
+  animation:fblSpin 3s linear infinite reverse;
+}
+@keyframes fblSpin{to{transform:rotate(360deg)}}
+.fbl-icon-box {
+  width:72px;height:72px;border-radius:18px;
+  background:linear-gradient(145deg,#1e1b4b,#312e81,#1d4ed8);
+  border:1px solid rgba(99,102,241,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.9rem;
+  box-shadow:0 8px 28px rgba(99,102,241,.30);
+}
+.fbl-msg {
+  font-size:1rem;font-weight:700;
+  color:rgba(255,255,255,.85);
+  margin-bottom:6px;
+}
+.fbl-sub {
+  font-size:.78rem;
+  color:rgba(255,255,255,.35);
+  margin-bottom:28px;
+}
+.fbl-bar-wrap {
+  width:160px;height:2px;
+  background:rgba(255,255,255,.08);
+  border-radius:99px;overflow:hidden;
+  margin-bottom:0;
+}
+.fbl-bar-fill {
+  height:100%;width:30%;
+  background:linear-gradient(90deg,#4f46e5,#818cf8);
+  border-radius:99px;
+  animation:fblPulse 1.4s ease-in-out infinite;
+}
+@keyframes fblPulse{0%{width:15%;margin-left:0}50%{width:50%;margin-left:50px}100%{width:15%;margin-left:130px}}
+</style>
+
+<div id="_fbLoader">
+  <div class="fbl-bg"></div>
+  <div class="fbl-grid"></div>
+  <div class="fbl-content">
+    <div class="fbl-icon-wrap">
+      <div class="fbl-icon-ring"></div>
+      <div class="fbl-icon-ring2"></div>
+      <div class="fbl-icon-box" id="_fbLoaderIcon">🏫</div>
+    </div>
+    <div class="fbl-msg" id="_fbLoaderMsg">جارٍ تحميل البيانات...</div>
+    <div class="fbl-sub" id="_fbLoaderSub">يرجى الانتظار لحظة</div>
+    <div class="fbl-bar-wrap"><div class="fbl-bar-fill"></div></div>
+    <button id="_fbRetryBtn" onclick="location.reload()" style="display:none;margin-top:22px;padding:10px 28px;background:linear-gradient(135deg,#4f46e5,#1d4ed8);color:white;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.90rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,.35);">🔄 إعادة المحاولة</button>
+  </div>
 </div>
 
-<!-- 🔥 مؤشر حالة Firebase -->
-<div id="_fbStatus" style="position:fixed;bottom:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:7px;background:rgba(13,27,42,.80);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 13px;font-family:'Tajawal',sans-serif;font-size:.76rem;color:rgba(255,255,255,.80);transition:opacity .5s;opacity:0;pointer-events:none;">
-  <span id="_fbStatusDot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;"></span>
+<!-- مؤشر حالة الاتصال -->
+<div id="_fbStatus" style="position:fixed;bottom:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:7px;background:rgba(10,15,30,.90);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:6px 14px;font-family:'Tajawal',sans-serif;font-size:.74rem;color:rgba(255,255,255,.70);transition:opacity .5s;opacity:0;pointer-events:none;">
+  <span id="_fbStatusDot" style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;transition:background .3s;"></span>
   <span id="_fbStatusText">جارٍ الاتصال...</span>
 </div>
 <script>
 window._fbSetStatus = function(state){
   var dot=document.getElementById('_fbStatusDot'),txt=document.getElementById('_fbStatusText'),bar=document.getElementById('_fbStatus');
   if(!dot||!txt||!bar) return;
-  var map={connecting:{c:'#f59e0b',l:'جارٍ الاتصال بـ Firebase...'},connected:{c:'#10b981',l:'🔥 Firebase متصل'},error:{c:'#ef4444',l:'⚠️ خطأ في الاتصال — تحقق من الإنترنت'}};
+  var map={
+    connecting:{c:'#f59e0b',l:'جارٍ الاتصال بالسحابة...'},
+    connected:{c:'#10b981',l:'✓ متصل بقاعدة البيانات'},
+    error:{c:'#ef4444',l:'⚠️ تعذّر الاتصال'}
+  };
   var s=map[state]||map.connecting;
   dot.style.background=s.c; txt.textContent=s.l; bar.style.opacity='1'; bar.style.pointerEvents='auto';
-  if(state==='connected') setTimeout(function(){bar.style.opacity='0';bar.style.pointerEvents='none';},4000);
+  if(state==='connected') setTimeout(function(){bar.style.opacity='0';bar.style.pointerEvents='none';},3500);
 };
 window._fbSetStatus('connecting');
 </script>
 
 <!-- ═══ شاشة الدخول ═══ -->
 <style>
-#loginScreen {
+#loginScreen{
   position:fixed;inset:0;z-index:99999;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:stretch;
   font-family:'Tajawal',sans-serif;
   overflow:hidden;
-  background:#050e1f;
+  background:#05080f;
 }
 
-/* خلفية متحركة */
-.ls-bg {
-  position:absolute;inset:0;
-  background: radial-gradient(ellipse at 20% 50%, #0d2a6e 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 20%, #0a4a7a 0%, transparent 55%),
-              radial-gradient(ellipse at 60% 80%, #0c1e4a 0%, transparent 50%),
-              #050e1f;
+/* ── الجانب الأيسر — ديكور ── */
+.ls-left{
+  flex:1;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0f0c29 0%,#1a1060 40%,#302b8a 100%);
 }
+@media(max-width:700px){.ls-left{display:none}}
 
-/* نجوم متحركة */
-.ls-stars { position:absolute;inset:0;overflow:hidden; }
-.ls-star {
-  position:absolute;border-radius:50%;
-  background:white;
-  animation: lsTwinkle linear infinite;
+/* نقاط ضوئية على اليسار */
+.ls-left-orb{
+  position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;
 }
-@keyframes lsTwinkle {
-  0%,100%{opacity:.15;transform:scale(1)}
-  50%{opacity:.90;transform:scale(1.4)}
-}
+.ls-left-orb:nth-child(1){width:400px;height:400px;background:rgba(99,102,241,.25);top:-100px;left:-100px;}
+.ls-left-orb:nth-child(2){width:300px;height:300px;background:rgba(139,92,246,.18);bottom:-80px;right:-50px;}
+.ls-left-orb:nth-child(3){width:200px;height:200px;background:rgba(59,130,246,.15);top:45%;left:40%;}
 
-/* خطوط شبكة */
-.ls-grid {
-  position:absolute;inset:0;
+/* شبكة على اليسار */
+.ls-left-grid{
+  position:absolute;inset:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
-  background-size:60px 60px;
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;
 }
 
-/* دوائر ضوئية طافية */
-.ls-orb {
-  position:absolute;border-radius:50%;filter:blur(80px);
-  animation: lsFloat ease-in-out infinite;
+/* محتوى اليسار */
+.ls-left-content{
+  position:relative;z-index:2;text-align:center;padding:40px;
+  animation:lsLeftIn .8s ease both;
 }
-.ls-orb1{width:400px;height:400px;background:rgba(21,101,192,.25);top:-100px;left:-100px;animation-duration:12s;}
-.ls-orb2{width:300px;height:300px;background:rgba(8,145,178,.20);bottom:-80px;right:-80px;animation-duration:9s;animation-delay:-4s;}
-.ls-orb3{width:200px;height:200px;background:rgba(99,102,241,.18);top:40%;left:60%;animation-duration:15s;animation-delay:-7s;}
-@keyframes lsFloat {
-  0%,100%{transform:translateY(0) scale(1)}
-  50%{transform:translateY(-30px) scale(1.05)}
-}
+@keyframes lsLeftIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
 
-/* البطاقة */
-.ls-card {
-  position:relative;z-index:2;
-  width:100%;max-width:420px;
-  margin:16px;
-  background: rgba(255,255,255,.07);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:28px;
-  padding:48px 44px 40px;
-  box-shadow:
-    0 32px 80px rgba(0,0,0,.50),
-    0 0 0 1px rgba(255,255,255,.06) inset,
-    0 1px 0 rgba(255,255,255,.18) inset;
-  text-align:center;
-}
-
-/* شعار / أيقونة */
-.ls-logo {
-  width:80px;height:80px;border-radius:24px;
-  background:linear-gradient(135deg,#1565c0,#0891b2);
+.ls-left-icon{
+  width:100px;height:100px;border-radius:28px;
+  background:linear-gradient(145deg,rgba(99,102,241,.30),rgba(79,70,229,.50));
+  border:1px solid rgba(99,102,241,.40);
   display:flex;align-items:center;justify-content:center;
-  font-size:2.2rem;
-  margin:0 auto 20px;
-  box-shadow:0 8px 32px rgba(8,145,178,.45), 0 0 0 8px rgba(8,145,178,.12);
+  font-size:2.8rem;margin:0 auto 28px;
+  box-shadow:0 0 0 16px rgba(99,102,241,.06), 0 20px 60px rgba(79,70,229,.30);
+}
+.ls-left-title{
+  font-family:'Amiri',serif;font-size:1.8rem;font-weight:700;
+  color:rgba(255,255,255,.92);margin-bottom:10px;line-height:1.3;
+}
+.ls-left-sub{
+  font-size:.82rem;color:rgba(255,255,255,.40);
+  line-height:1.8;max-width:260px;margin:0 auto 36px;
+}
+
+/* بطاقات ميزات صغيرة */
+.ls-features{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.ls-feature{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:12px 16px;
+  text-align:right;
+}
+.ls-feature-icon{font-size:1.2rem;flex-shrink:0;}
+.ls-feature-text{font-size:.78rem;color:rgba(255,255,255,.55);font-weight:600;line-height:1.4;}
+
+/* خط فاصل عمودي */
+.ls-divider-v{
+  width:1px;background:rgba(255,255,255,.06);flex-shrink:0;
+}
+
+/* ── الجانب الأيمن — نموذج الدخول ── */
+.ls-right{
+  width:440px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:#05080f;
+  padding:48px 44px;
   position:relative;
+  overflow:hidden;
 }
-.ls-logo::after {
-  content:'';
-  position:absolute;inset:-8px;border-radius:32px;
-  border:1px solid rgba(8,145,178,.30);
-  pointer-events:none;
+@media(max-width:700px){.ls-right{width:100%;padding:40px 28px;}}
+
+/* نجوم خلفية اليمين */
+.ls-stars{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ls-star{
+  position:absolute;border-radius:50%;background:white;
+  animation:lsTwinkle linear infinite;
+}
+@keyframes lsTwinkle{0%,100%{opacity:.05}50%{opacity:.40}}
+
+/* بقعة ضوء علوية */
+.ls-right::before{
+  content:'';position:absolute;top:-120px;right:-80px;
+  width:350px;height:350px;border-radius:50%;
+  background:rgba(79,70,229,.08);filter:blur(80px);pointer-events:none;
 }
 
-.ls-title {
-  font-size:1.45rem;font-weight:900;
-  color:white;
-  margin-bottom:6px;
-  letter-spacing:.3px;
+/* ── نموذج الدخول ── */
+.ls-form-wrap{
+  position:relative;z-index:2;width:100%;
+  animation:lsFormIn .6s cubic-bezier(.22,.68,0,1.15) .15s both;
 }
-.ls-subtitle {
-  font-size:.82rem;color:rgba(255,255,255,.45);
-  font-weight:500;margin-bottom:36px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.ls-subtitle::before, .ls-subtitle::after {
-  content:'';flex:1;max-width:50px;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.20));
-}
-.ls-subtitle::after{ background:linear-gradient(270deg,transparent,rgba(255,255,255,.20)); }
+@keyframes lsFormIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-/* حقل الإدخال */
-.ls-field {
-  position:relative;margin-bottom:14px;
+/* بادج أعلى */
+.ls-top-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(99,102,241,.10);
+  border:1px solid rgba(99,102,241,.20);
+  color:rgba(165,180,252,.75);
+  font-size:.68rem;font-weight:800;
+  padding:5px 14px;border-radius:99px;
+  margin-bottom:28px;letter-spacing:.5px;
 }
-.ls-field label {
-  display:block;text-align:right;
-  font-size:.76rem;font-weight:700;
-  color:rgba(255,255,255,.50);
-  margin-bottom:8px;letter-spacing:.5px;
+.ls-top-badge-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#818cf8;
+  box-shadow:0 0 8px rgba(129,140,248,.9);
+  animation:lsDotPulse 2s ease infinite;
 }
-.ls-input {
-  width:100%;box-sizing:border-box;
-  background:rgba(255,255,255,.08);
-  border:1.5px solid rgba(255,255,255,.15);
-  border-radius:14px;
-  padding:15px 52px 15px 48px;
-  font-size:1.4rem;font-family:'Tajawal',sans-serif;
-  color:white;outline:none;
-  letter-spacing:10px;text-align:center;
-  transition:all .25s;
-  caret-color:rgba(255,255,255,.6);
+@keyframes lsDotPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.ls-form-title{
+  font-size:1.55rem;font-weight:900;
+  color:rgba(255,255,255,.90);
+  margin-bottom:6px;letter-spacing:.2px;
 }
-.ls-input::placeholder{font-size:.88rem;letter-spacing:1px;color:rgba(255,255,255,.25);}
-.ls-input:focus {
-  border-color:rgba(8,145,178,.80);
-  background:rgba(8,145,178,.12);
-  box-shadow:0 0 0 4px rgba(8,145,178,.18), 0 0 20px rgba(8,145,178,.15);
+.ls-form-sub{
+  font-size:.80rem;color:rgba(255,255,255,.32);
+  margin-bottom:36px;font-weight:500;
 }
-.ls-input.ls-err {
-  border-color:rgba(239,68,68,.70)!important;
-  background:rgba(239,68,68,.10)!important;
-  box-shadow:0 0 0 4px rgba(239,68,68,.15)!important;
+
+/* ── مربعات الـ PIN ── */
+.ls-pin-row{
+  display:flex;gap:14px;justify-content:center;
+  margin-bottom:8px;
 }
-.ls-eye {
-  position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-  border-radius:8px;width:32px;height:32px;
-  cursor:pointer;font-size:.95rem;color:rgba(255,255,255,.55);
+.ls-pin-box{
+  width:64px;height:70px;border-radius:16px;
+  background:rgba(255,255,255,.05);
+  border:2px solid rgba(255,255,255,.10);
   display:flex;align-items:center;justify-content:center;
-  transition:all .2s;
-}
-.ls-eye:hover{background:rgba(255,255,255,.16);color:white;}
-
-/* أيقونة القفل داخل الحقل */
-.ls-lock-icon {
-  position:absolute;left:16px;top:50%;transform:translateY(-50%);
-  font-size:1rem;opacity:.35;pointer-events:none;
-}
-
-/* رسالة الخطأ */
-.ls-error {
-  display:none;
-  background:rgba(239,68,68,.15);
-  border:1px solid rgba(239,68,68,.35);
-  border-radius:10px;padding:10px 16px;
-  font-size:.82rem;color:#fca5a5;font-weight:700;
-  margin-bottom:16px;
-  display:none;align-items:center;gap:8px;justify-content:center;
-}
-
-/* زر الدخول */
-.ls-btn {
-  width:100%;padding:15px;border:none;border-radius:14px;
-  background:linear-gradient(135deg,#0891b2 0%,#1565c0 100%);
-  color:white;font-size:1.05rem;font-weight:800;
-  font-family:'Tajawal',sans-serif;
-  cursor:pointer;
-  box-shadow:0 6px 24px rgba(8,145,178,.40);
+  font-size:2rem;color:white;
   transition:all .2s;
   position:relative;overflow:hidden;
-  letter-spacing:.5px;
+  cursor:text;
 }
-.ls-btn::before {
+.ls-pin-box.filled{
+  background:rgba(99,102,241,.12);
+  border-color:rgba(99,102,241,.50);
+  box-shadow:0 0 0 4px rgba(99,102,241,.10), 0 4px 20px rgba(79,70,229,.20);
+}
+.ls-pin-box.active{
+  border-color:rgba(99,102,241,.80);
+  background:rgba(99,102,241,.15);
+  box-shadow:0 0 0 4px rgba(99,102,241,.18), 0 6px 24px rgba(79,70,229,.30);
+}
+.ls-pin-box.error{
+  border-color:rgba(239,68,68,.60)!important;
+  background:rgba(239,68,68,.08)!important;
+  box-shadow:0 0 0 4px rgba(239,68,68,.12)!important;
+  animation:lsPinShake .4s ease!important;
+}
+@keyframes lsPinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.ls-pin-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:rgba(129,140,248,.85);
+  display:none;
+}
+.ls-pin-box.filled .ls-pin-dot{display:block;}
+.ls-pin-box.show-char .ls-pin-dot{display:none;}
+.ls-pin-char{display:none;font-size:1.5rem;color:white;font-weight:700;}
+.ls-pin-box.show-char .ls-pin-char{display:block;}
+
+/* حقل مخفي للإدخال */
+.ls-hidden-input{
+  position:absolute;opacity:0;width:1px;height:1px;
+  top:50%;left:50%;pointer-events:none;
+  font-size:16px;
+}
+
+/* عداد + زر العين */
+.ls-pin-actions{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:28px;padding:0 4px;
+}
+.ls-pin-hint{font-size:.70rem;color:rgba(255,255,255,.22);letter-spacing:.3px;}
+.ls-eye-btn{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:8px;padding:5px 12px;
+  font-size:.70rem;color:rgba(255,255,255,.35);
+  cursor:pointer;transition:all .2s;font-family:'Tajawal',sans-serif;
+}
+.ls-eye-btn:hover{background:rgba(255,255,255,.10);color:rgba(255,255,255,.65);}
+
+/* ── رسالة الخطأ ── */
+.ls-error{
+  display:none;align-items:center;gap:8px;justify-content:center;
+  background:rgba(239,68,68,.10);
+  border:1px solid rgba(239,68,68,.25);
+  border-radius:12px;padding:10px 16px;
+  font-size:.78rem;color:rgba(252,165,165,.88);font-weight:700;
+  margin-bottom:16px;
+}
+
+/* ── زر الدخول ── */
+.ls-btn{
+  width:100%;padding:15px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,#4f46e5 0%,#2563eb 100%);
+  color:white;font-size:1rem;font-weight:800;
+  font-family:'Tajawal',sans-serif;
+  cursor:pointer;
+  box-shadow:0 4px 24px rgba(79,70,229,.40), 0 1px 0 rgba(255,255,255,.18) inset;
+  transition:all .22s;position:relative;overflow:hidden;
+  letter-spacing:.3px;
+}
+.ls-btn::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);
-  border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 55%);
+  border-radius:inherit;pointer-events:none;
 }
-.ls-btn:hover {
+.ls-btn:hover:not(:disabled){
   transform:translateY(-2px);
-  box-shadow:0 10px 32px rgba(8,145,178,.55);
-  background:linear-gradient(135deg,#0891b2 0%,#1e40af 100%);
+  box-shadow:0 8px 32px rgba(79,70,229,.55), 0 1px 0 rgba(255,255,255,.22) inset;
 }
-.ls-btn:active{transform:translateY(0);}
+.ls-btn:active:not(:disabled){transform:translateY(0);}
+.ls-btn:disabled{opacity:.65;cursor:not-allowed;}
 
-/* شريط التحميل عند الدخول */
-.ls-btn-loading::after {
-  content:'';display:inline-block;
-  width:16px;height:16px;border-radius:50%;
-  border:2px solid rgba(255,255,255,.4);
-  border-top-color:white;
-  margin-right:8px;vertical-align:middle;
-}
-
-.ls-footer {
+/* ── فوتر ── */
+.ls-bottom{
   margin-top:28px;
   display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:.72rem;color:rgba(255,255,255,.22);
+  font-size:.68rem;color:rgba(255,255,255,.16);letter-spacing:.4px;
 }
-.ls-footer-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.20);}
-
-/* شريط تقدم الكتابة */
-.ls-dots {
-  display:flex;justify-content:center;gap:6px;
-  height:8px;margin-bottom:12px;
-}
-.ls-dot {
-  width:8px;height:8px;border-radius:50%;
-  background:rgba(255,255,255,.15);
-  border:1.5px solid rgba(255,255,255,.20);
-  transition:all .2s;
-}
-.ls-dot.filled {
-  background:linear-gradient(135deg,#0891b2,#1565c0);
-  border-color:#0891b2;
-  box-shadow:0 0 8px rgba(8,145,178,.60);
-  transform:scale(1.2);
-}
+.ls-bottom-dot{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.16);}
 </style>
 
 <div id="loginScreen">
-  <!-- خلفية -->
-  <div class="ls-bg"></div>
-  <div class="ls-grid"></div>
-  <div class="ls-stars" id="lsStars"></div>
-  <div class="ls-orb ls-orb1"></div>
-  <div class="ls-orb ls-orb2"></div>
-  <div class="ls-orb ls-orb3"></div>
 
-  <!-- البطاقة -->
-  <div class="ls-card" id="lsCard">
-
-    <!-- الشعار -->
-    <div class="ls-logo">🏫</div>
-
-    <div class="ls-title">نظام الإرشاد الطلابي</div>
-    <div class="ls-subtitle">لوحة تحكم المدير</div>
-
-    <!-- مؤشرات النقاط -->
-    <div class="ls-dots" id="lsDots">
-      <div class="ls-dot" id="d0"></div>
-      <div class="ls-dot" id="d1"></div>
-      <div class="ls-dot" id="d2"></div>
-      <div class="ls-dot" id="d3"></div>
-    </div>
-
-    <!-- حقل كلمة المرور -->
-    <div class="ls-field">
-      <label>كلمة المرور</label>
-      <div style="position:relative;">
-        <span class="ls-lock-icon">🔒</span>
-        <input
-          id="loginInput"
-          class="ls-input"
-          type="password"
-          placeholder="● ● ● ●"
-          maxlength="10"
-          dir="ltr"
-          autocomplete="current-password"
-          onkeydown="if(event.key==='Enter')doLogin()"
-          oninput="onLoginInput(this)"
-        >
-        <button class="ls-eye" onclick="toggleLoginPass()" id="loginToggleBtn" title="إظهار / إخفاء">👁</button>
+  <!-- الجانب الأيسر (ديكور) -->
+  <div class="ls-left">
+    <div class="ls-left-orb"></div>
+    <div class="ls-left-orb"></div>
+    <div class="ls-left-orb"></div>
+    <div class="ls-left-grid"></div>
+    <div class="ls-left-content">
+      <div class="ls-left-icon">🏫</div>
+      <div class="ls-left-title">مدارس البشرى<br>الأهلية</div>
+      <div class="ls-left-sub">منظومة الإرشاد الطلابي المتكاملة — إدارة ذكية لبيانات الطلاب والتقارير</div>
+      <div class="ls-features">
+        <div class="ls-feature">
+          <span class="ls-feature-icon">📊</span>
+          <span class="ls-feature-text">تحليل نتائج الطلاب وتقارير المعلمين</span>
+        </div>
+        <div class="ls-feature">
+          <span class="ls-feature-icon">☁️</span>
+          <span class="ls-feature-text">حفظ تلقائي على السحابة في الوقت الحقيقي</span>
+        </div>
+        <div class="ls-feature">
+          <span class="ls-feature-icon">🔒</span>
+          <span class="ls-feature-text">نظام محمي ومشفّر — للمسؤولين فقط</span>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- رسالة الخطأ -->
-    <div class="ls-error" id="loginErr">
-      <span>⚠️</span><span>كلمة المرور غير صحيحة، حاول مرة أخرى</span>
-    </div>
+  <div class="ls-divider-v"></div>
 
-    <!-- زر الدخول -->
-    <button class="ls-btn" id="lsBtn" onclick="doLogin()">
-      🔐 &nbsp; دخول إلى النظام
-    </button>
+  <!-- الجانب الأيمن (نموذج) -->
+  <div class="ls-right">
+    <div class="ls-stars" id="lsStars"></div>
 
-    <div class="ls-footer">
-      <div class="ls-footer-dot"></div>
-      <span>النظام محمي — للمسؤولين فقط</span>
-      <div class="ls-footer-dot"></div>
+    <div class="ls-form-wrap" id="lsCard">
+
+      <div style="display:flex;justify-content:center;">
+        <div class="ls-top-badge">
+          <div class="ls-top-badge-dot"></div>
+          <span>تسجيل الدخول</span>
+        </div>
+      </div>
+
+      <div class="ls-form-title">أهلاً بك 👋</div>
+      <div class="ls-form-sub">أدخل رمز الدخول المكوّن من 4 أرقام</div>
+
+      <!-- مربعات PIN -->
+      <div class="ls-pin-row" id="lsPinRow" onclick="document.getElementById('lsHiddenInput').focus()">
+        <div class="ls-pin-box active" id="pb0"><div class="ls-pin-dot"></div><span class="ls-pin-char"></span></div>
+        <div class="ls-pin-box" id="pb1"><div class="ls-pin-dot"></div><span class="ls-pin-char"></span></div>
+        <div class="ls-pin-box" id="pb2"><div class="ls-pin-dot"></div><span class="ls-pin-char"></span></div>
+        <div class="ls-pin-box" id="pb3"><div class="ls-pin-dot"></div><span class="ls-pin-char"></span></div>
+      </div>
+      <input id="lsHiddenInput" class="ls-hidden-input" type="password" maxlength="4" inputmode="text" autocomplete="current-password">
+
+      <div class="ls-pin-actions">
+        <span class="ls-pin-hint" id="lsPinHint">اضغط هنا ثم اكتب</span>
+        <button class="ls-eye-btn" id="lsEyeBtn" onclick="toggleLoginPass()">إظهار</button>
+      </div>
+
+      <!-- خطأ -->
+      <div class="ls-error" id="loginErr">
+        <span>⚠️</span><span>رمز الدخول غير صحيح، حاول مرة أخرى</span>
+      </div>
+
+      <!-- زر الدخول -->
+      <button class="ls-btn" id="lsBtn" onclick="doLogin()">
+        دخول إلى النظام &nbsp;→
+      </button>
+
+      <div class="ls-bottom">
+        <div class="ls-bottom-dot"></div>
+        <span>النظام محمي — مدارس البشرى الأهلية</span>
+        <div class="ls-bottom-dot"></div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
-// ── تحقق فوري ──
 (function(){
   if(sessionStorage.getItem('g_auth')==='1'){
     document.getElementById('loginScreen').style.display='none';
   }
 })();
 
-// ── نجوم عشوائية ──
+// نجوم
 (function(){
-  const c=document.getElementById('lsStars');
-  if(!c)return;
-  for(let i=0;i<90;i++){
-    const s=document.createElement('div');
-    s.className='ls-star';
-    const sz=Math.random()*2.5+.5;
-    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*5}s;animation-delay:${Math.random()*6}s;`;
+  const c=document.getElementById('lsStars');if(!c)return;
+  for(let i=0;i<55;i++){
+    const s=document.createElement('div');s.className='ls-star';
+    const sz=Math.random()*1.8+.3;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${3+Math.random()*7}s;animation-delay:${Math.random()*8}s;`;
     c.appendChild(s);
   }
 })();
 
-// ── نقاط التقدم ──
-function onLoginInput(inp){
-  document.getElementById('loginErr').style.display='none';
-  inp.classList.remove('ls-err');
-  const v=inp.value.length;
-  for(let i=0;i<4;i++){
-    const d=document.getElementById('d'+i);
-    if(d) d.classList.toggle('filled',i<v);
+// ── منطق الـ PIN ──
+var pinVal='';
+var showPin=false;
+
+function updatePinUI(){
+  for(var i=0;i<4;i++){
+    var box=document.getElementById('pb'+i);
+    box.classList.remove('active','filled','error');
+    var dot=box.querySelector('.ls-pin-dot');
+    var chr=box.querySelector('.ls-pin-char');
+    if(i<pinVal.length){
+      box.classList.add('filled');
+      if(showPin){
+        box.classList.add('show-char');
+        chr.textContent=pinVal[i];
+      } else {
+        box.classList.remove('show-char');
+        chr.textContent='';
+      }
+    } else {
+      box.classList.remove('show-char');
+      chr.textContent='';
+    }
+    if(i===pinVal.length) box.classList.add('active');
   }
+  var hint=document.getElementById('lsPinHint');
+  if(hint) hint.textContent = pinVal.length>0 ? pinVal.length+' / 4' : 'اضغط هنا ثم اكتب';
 }
 
-// ── إظهار / إخفاء ──
+var hiddenInp=document.getElementById('lsHiddenInput');
+hiddenInp.addEventListener('input',function(){
+  var v=this.value.slice(0,4);
+  this.value=v;pinVal=v;
+  document.getElementById('loginErr').style.display='none';
+  for(var i=0;i<4;i++) document.getElementById('pb'+i).classList.remove('error');
+  updatePinUI();
+  if(v.length===4) setTimeout(doLogin,120);
+});
+hiddenInp.addEventListener('focus',function(){updatePinUI();});
+document.getElementById('lsPinRow').addEventListener('click',function(){
+  hiddenInp.focus();
+});
+
 function toggleLoginPass(){
-  const inp=document.getElementById('loginInput');
-  const btn=document.getElementById('loginToggleBtn');
-  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
-  else{inp.type='password';btn.textContent='👁';}
+  showPin=!showPin;
+  hiddenInp.type=showPin?'text':'password';
+  document.getElementById('lsEyeBtn').textContent=showPin?'إخفاء':'إظهار';
+  updatePinUI();
 }
 
-// ── دخول ──
+// تعريف onLoginInput للتوافق مع الكود القديم
+function onLoginInput(){}
+
 async function doLogin(){
-  const inp=document.getElementById('loginInput');
-  const btn=document.getElementById('lsBtn');
-  // كلمة السر مشفرة بـ SHA-256
-  const _h = async s => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const entered = await _h(inp.value);
+  var btn=document.getElementById('lsBtn');
+  var _h=async function(s){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(function(b){return b.toString(16).padStart(2,'0');}).join('');};
+  var entered=await _h(pinVal);
   if(entered==='941b74661161da4ada37e53ac991b085d6700e9b16fb8dd999d4f8348fa958e8'){
-    btn.textContent='✅  جاري الدخول...';
-    btn.style.background='linear-gradient(135deg,#10b981,#059669)';
-    btn.style.boxShadow='0 6px 24px rgba(16,185,129,.45)';
+    btn.innerHTML='✓ &nbsp; جاري الدخول...';
+    btn.style.background='linear-gradient(135deg,#059669,#047857)';
+    btn.style.boxShadow='0 6px 24px rgba(16,185,129,.40)';
     btn.disabled=true;
     sessionStorage.setItem('g_auth','1');
-    const s=document.getElementById('loginScreen');
-    setTimeout(()=>{
+    var s=document.getElementById('loginScreen');
+    setTimeout(function(){
       s.style.transition='opacity .55s ease';
       s.style.opacity='0';
-      setTimeout(()=>s.style.display='none',560);
-    },600);
+      setTimeout(function(){s.style.display='none';},560);
+    },500);
   } else {
-    const err=document.getElementById('loginErr');
-    err.style.display='flex';
-    inp.classList.add('ls-err');
-    // هز البطاقة
-    const card=document.getElementById('lsCard');
-    card.style.transition='transform .08s';
-    let n=0;
-    const shake=setInterval(()=>{
-      card.style.transform=`translateX(${n%2===0?-8:8}px)`;
-      n++;if(n>6){clearInterval(shake);card.style.transform='';}
-    },60);
-    inp.value='';
-    onLoginInput(inp);
-    setTimeout(()=>{
-      inp.classList.remove('ls-err');
-      err.style.display='none';
-    },2500);
-    inp.focus();
+    document.getElementById('loginErr').style.display='flex';
+    for(var i=0;i<4;i++) document.getElementById('pb'+i).classList.add('error');
+    pinVal=''; hiddenInp.value='';
+    setTimeout(function(){
+      for(var i=0;i<4;i++) document.getElementById('pb'+i).classList.remove('error');
+      document.getElementById('loginErr').style.display='none';
+      updatePinUI(); hiddenInp.focus();
+    },1800);
   }
 }
+updatePinUI();
+setTimeout(function(){document.getElementById('lsHiddenInput').focus();},300);
 </script>
 
 <!-- ═══════════════ شاشة التحميل ═══════════════ -->
@@ -2943,7 +3098,7 @@ async function doLogin(){
     </div>
     <div class="splash-school">مدارس البشرى الأهلية</div>
     <div class="splash-name" id="splashName">نظام الإرشاد الطلابي</div>
-    <div class="splash-role-txt">لوحة الإدارة المتكاملة</div>
+    <div class="splash-role-txt">لوحة الإدارة المتكاملة · مدارس البشرى</div>
     <div class="splash-progress-wrap">
       <div class="splash-progress-bar"></div>
     </div>
@@ -15004,7 +15159,7 @@ window.runGlobalSearch = function(){
           // footer
           '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);',
             'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">',
-            '<span style="font-size:.74rem;color:var(--muted);">🛠️ تم التطوير بالتعاون مع Claude AI — جميع التحديثات مطبّقة وجاهزة</span>',
+
             '<span style="font-size:.72rem;font-weight:800;padding:3px 12px;border-radius:99px;',
               'background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.25);color:#059669;">✅ 6 تحديثات</span>',
           '</div>',
